@@ -13,7 +13,7 @@ import {
 } from '@chakra-ui/react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { useAuth } from '../contexts/AuthContext';  // 剛才建立的 Context
+import { useAuth } from '@a920604a/auth';
 import { getHabits } from '../utils/firebaseDb';
 import HabitBarChart from '../components/Statistics/HabitBarChart';
 import PopularHabitsChart from '../components/Statistics/PopularHabitsChart';

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@a920604a/auth';
 import {
     getHabits,
     addHabit,
