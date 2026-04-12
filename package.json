@@ -1,0 +1,21 @@
+{
+  "name": "a920604a-labs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nx run-many --target=dev --all",
+    "build": "nx run-many --target=build --all",
+    "lint": "nx run-many --target=lint --all",
+    "typecheck": "nx run-many --target=typecheck --all",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore"
+  },
+  "devDependencies": {
+    "@nx/js": "^20.0.0",
+    "@nx/react": "^20.0.0",
+    "@nx/vite": "^20.0.0",
+    "@nx/workspace": "^20.0.0",
+    "nx": "^20.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.8.0"
+  }
+}

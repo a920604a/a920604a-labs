@@ -1,0 +1,19 @@
+name = "ebook-api"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ebook-db"
+database_id = "YOUR_D1_DATABASE_ID"   # replace after: wrangler d1 create ebook-db
+
+[[r2_buckets]]
+binding = "BOOKS_BUCKET"
+bucket_name = "ebook-books"
+
+[vars]
+FIREBASE_PROJECT_ID = "YOUR_FIREBASE_PROJECT_ID"
+
+# CORS origins - update for production
+ALLOWED_ORIGINS = "http://localhost:5173,https://ebook-reader.pages.dev"

@@ -1,0 +1,13 @@
+{
+  "name": "@a920604a/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "firebase": "^11.0.0"
+  }
+}
