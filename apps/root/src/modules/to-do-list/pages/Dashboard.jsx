@@ -109,7 +109,7 @@ export default function Dashboard() {
     <Box p={5} maxW="600px" mx="auto">
       <TopBar 
         backButtonText="查看習慣統計" 
-        onBackClick={() => navigate('/statistics')} 
+        onBackClick={() => navigate('/')} 
       />
       {userName && (
         <Text fontSize="md" color="gray.600" mb={4}>

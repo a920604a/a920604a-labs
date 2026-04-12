@@ -1,0 +1,47 @@
+/* CalendarStyles.css */
+.react-calendar {
+  border: none;
+  font-family: 'Arial', sans-serif;
+}
+
+.react-calendar__tile {
+  position: relative;
+  padding: 10px;
+}
+
+.react-calendar__tile.marked::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background-color: #38a169; /* 綠色圓點，可改成每個習慣不同顏色 */
+  border-radius: 50%;
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.react-calendar__tile.today {
+  background-color: #bee3f8 !important;
+  border-radius: 8px;
+}
+
+.react-calendar__tile.selected-day {
+  background-color: #90cdf4 !important;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+/* CalendarStyles.css */
+.dots-wrapper {
+  position: relative;
+  height: 12px;
+  margin-top: 2px;
+}
+
+.habit-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}

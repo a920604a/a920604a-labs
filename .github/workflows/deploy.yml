@@ -5,13 +5,13 @@ on:
     branches: [main]
 
 jobs:
-  # ── resign-stamp ─────────────────────────────────────────────────────────────
-  deploy-resign-stamp:
-    name: Deploy resign-stamp
+  # ── root app ──────────────────────────────────────────────────────────────────
+  deploy-root:
+    name: Deploy root app
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/resign-stamp
+        working-directory: apps/root
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
@@ -25,119 +25,17 @@ jobs:
         working-directory: .
       - run: pnpm build
         env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.RESIGN_STAMP_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.RESIGN_STAMP_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.RESIGN_STAMP_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.RESIGN_STAMP_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.RESIGN_STAMP_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.RESIGN_STAMP_FIREBASE_APP_ID }}
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=resign-stamp
-          workingDirectory: apps/resign-stamp
-
-  # ── habit-tracker ─────────────────────────────────────────────────────────────
-  deploy-habit-tracker:
-    name: Deploy habit-tracker
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/habit-tracker
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-        working-directory: .
-      - run: pnpm build
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.HABIT_TRACKER_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.HABIT_TRACKER_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.HABIT_TRACKER_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.HABIT_TRACKER_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.HABIT_TRACKER_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.HABIT_TRACKER_FIREBASE_APP_ID }}
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=habit-tracker
-          workingDirectory: apps/habit-tracker
-
-  # ── to-do-list ────────────────────────────────────────────────────────────────
-  deploy-to-do-list:
-    name: Deploy to-do-list
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/to-do-list
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-        working-directory: .
-      - run: pnpm build
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.TODO_LIST_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.TODO_LIST_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.TODO_LIST_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.TODO_LIST_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.TODO_LIST_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.TODO_LIST_FIREBASE_APP_ID }}
-          VITE_FIREBASE_DATABASE_URL: ${{ secrets.TODO_LIST_FIREBASE_DATABASE_URL }}
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=to-do-list
-          workingDirectory: apps/to-do-list
-
-  # ── ebook-reader ──────────────────────────────────────────────────────────────
-  deploy-ebook-reader:
-    name: Deploy ebook-reader
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/ebook-reader
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-        working-directory: .
-      - run: pnpm build
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.EBOOK_READER_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.EBOOK_READER_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.EBOOK_READER_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.EBOOK_READER_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.EBOOK_READER_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.EBOOK_READER_FIREBASE_APP_ID }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           VITE_EBOOK_API_URL: ${{ secrets.EBOOK_API_URL }}
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=ebook-reader
-          workingDirectory: apps/ebook-reader
+      - run: pnpm wrangler pages deploy dist --project-name=a920604a-labs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   # ── ebook-api worker ──────────────────────────────────────────────────────────
   deploy-ebook-api:
