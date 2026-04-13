@@ -1,136 +1,147 @@
 # a920604a Labs
 
-一個 pnpm monorepo，整合四個實用小工具，使用 React 19 + Chakra UI + Firebase + Cloudflare 部署。
+pnpm monorepo，整合四個實用工具。React 19 + TypeScript + Chakra UI + Firebase + Cloudflare。
 
-**Production URL：** https://a920604a-labs.pages.dev
+**Production：** https://a920604a-labs.pages.dev  
+**GitHub：** https://github.com/a920604a/a920604a-labs
+
+---
+
+## 專案結構
+
+```
+a920604a-labs/
+├── apps/
+│   ├── root/            # SPA 入口（路由組裝 + HubPage）
+│   ├── ebook-reader/    # @a920604a/ebook-reader
+│   ├── habit-tracker/   # @a920604a/habit-tracker
+│   ├── resign-stamp/    # @a920604a/resign-stamp
+│   └── to-do-list/      # @a920604a/to-do-list
+├── packages/
+│   ├── auth/            # @a920604a/auth（Firebase Auth）
+│   └── ui/              # @a920604a/ui（GlobalShell, LoginPage, theme）
+└── workers/
+    └── ebook-api/       # Cloudflare Worker + D1（電子書 API）
+```
+
+### apps/root
+
+SPA 唯一的建置入口，程式碼極精簡：
+
+| 檔案 | 職責 |
+|---|---|
+| `src/main.tsx` | Firebase `initFirebase()`、掛載 ChakraProvider + AuthProvider |
+| `src/App.tsx` | BrowserRouter、`MODULES` 導覽設定、`<GlobalShell>`、四個模組 Route |
+| `src/pages/HubPage.tsx` | 首頁啟動頁（時段問候 + 四個模組卡片） |
+
+所有功能邏輯在各模組套件（`apps/*/src/`）內，`apps/root` 只負責組裝部署。
+
+### 模組套件（library-only）
+
+四個模組皆為 workspace 套件，格式：
+
+```
+apps/{module}/
+├── package.json   # name: @a920604a/{module}，exports ./src/index.ts
+├── tsconfig.json  # moduleResolution: bundler，allowJs: true
+└── src/
+    ├── index.ts   # export { default } from './App'
+    ├── App.tsx    # React Router sub-routes
+    ├── pages/
+    ├── components/
+    ├── hooks/     # (部分模組)
+    └── utils/     # (部分模組)
+```
+
+各模組**無 vite.config.ts**，透過 pnpm workspace symlink 由 `apps/root` 的 Vite 統一打包。
+
+### packages/auth（@a920604a/auth）
+
+```ts
+// 匯出
+initFirebase(config)      // 初始化 Firebase App（幂等）
+getFirebaseAuth()         // 取得 Auth instance
+getFirebaseFirestore()    // 取得 Firestore instance
+AuthProvider              // React Context Provider
+useAuth()                 // → { user, loading, signInWithGoogle, logout }
+```
+
+### packages/ui（@a920604a/ui）
+
+```ts
+// 匯出
+GlobalShell      // macOS HIG sidebar shell（props: modules, user, onLogout, brandName）
+LoginPage        // Google 登入頁
+AppShell         // 簡易 layout wrapper（含 NavBar）
+NavBar           // 獨立 top navigation bar
+theme            // Chakra UI 擴充主題（brand 色系 + Noto Sans TC）
+
+// GlobalShell 類型
+interface SidebarModule {
+  path: string
+  label: string
+  icon?: ReactNode
+  subItems?: { label: string; path: string }[]
+  exact?: boolean
+}
+```
+
+GlobalShell 設計特點：
+- 桌面端：固定左側 Sidebar（240px），Topbar 磨砂玻璃效果（backdrop-filter）
+- 行動端：Hamburger → 左滑 Drawer
+- Active state：Filled rounded rect（仿 macOS Finder）
+- 導覽設定完全由呼叫端的 `modules` prop 控制，無硬編碼路由
 
 ---
 
 ## 功能模組
 
-### 🏮 離職集章（Resign Stamp）
-記錄每一個想離職的瞬間，逐章累積成你的離職故事。
+### 📝 待辦清單
+Firebase Firestore 即時同步。截止日期警示、標籤分類（工作／學習／個人／其他）、
+列表 ／ 統計 ／ 日曆三視圖、Tiptap 富文字備註。
 
-- **集章板**：100 格印章格，點擊蓋章並輸入當下原因
-- **進度統計**：已蓋章數、剩餘章數、完成百分比、里程碑進度條
-- **成就徽章**：達成 25 / 50 / 75 / 100 章時自動解鎖
-- **每日箴言**：依日期輪播離職勵志語錄
-- **理由總覽**：搜尋、排序、複製、匯出所有蓋章理由（.txt）
-- **匯出 PDF**：一鍵生成離職集章證明報告
+### ✅ 習慣追蹤
+每日打卡、連續天數、成就徽章（Firestore）。統計頁：週/月打卡率折線圖、熱力圖、
+長條圖（Recharts + Chart.js）。瀏覽器通知提醒、PDF 匯出（pdf-lib）。
 
-### ✅ 習慣追蹤（Habit Tracker）
-追蹤每日習慣打卡，養成好習慣。
+### 📚 電子書
+PDF 上傳 → IndexedDB 本機快取 + Cloudflare Worker D1 遠端同步。
+@react-pdf-viewer 閱讀器、閱讀進度記憶、分類書庫、圓餅統計圖。
 
-- 新增 / 刪除習慣（自訂顏色）
-- 每日打卡 & 取消打卡
-- 日曆視圖：一眼看出打卡連續天數
-- 統計分析頁：週/月打卡率圖表
-- 成就徽章：連續打卡里程碑
-- 瀏覽器通知提醒（Reminder）
-
-### 📝 待辦清單（To-Do List）
-管理每日任務，提升生產力。
-
-- 新增 / 完成 / 刪除待辦事項
-- 截止日期設定，接近到期顯示警示色
-- 標籤分類（工作 / 學習 / 個人 / 其他）
-- 列表 / 統計 / 日曆 三種視圖切換
-- Firebase Firestore 即時同步
-
-### 📚 電子書閱讀（Ebook Reader）
-上傳管理並閱讀 PDF 電子書。
-
-- 上傳 PDF → IndexedDB 本機儲存
-- 書籍分類標籤、搜尋篩選
-- 已讀 / 正在讀 / 未讀 狀態追蹤
-- 書籍統計圓餅圖（分類分佈 & 閱讀狀態）
-- 閱讀進度自動同步（Cloudflare Worker D1）
-- 夜間模式閱讀器、記憶上次閱讀頁碼
+### 🏮 離職集章
+100 格印章格（點擊蓋章 + 輸入理由）、進度條、成就徽章、每日箴言。
+理由總覽搜尋／排序／匯出 .txt，一鍵生成 PDF 離職集章證明（pdf-lib + fontkit）。
 
 ---
 
-## 技術架構
+## 技術棧
 
-```
-a920604a-labs/
-├── apps/
-│   ├── root/               # 主 SPA 入口（薄殼，只含路由組裝與 HubPage）
-│   │   └── src/
-│   │       ├── App.tsx         # BrowserRouter + MODULES 導覽設定 + GlobalShell
-│   │       ├── main.tsx        # Firebase 初始化 + React 掛載
-│   │       └── pages/
-│   │           └── HubPage.tsx # 首頁 App Hub
-│   ├── ebook-reader/       # @a920604a/ebook-reader（workspace 套件）
-│   ├── habit-tracker/      # @a920604a/habit-tracker（workspace 套件）
-│   ├── resign-stamp/       # @a920604a/resign-stamp（workspace 套件）
-│   └── to-do-list/         # @a920604a/to-do-list（workspace 套件）
-├── packages/
-│   ├── auth/               # @a920604a/auth：Firebase Auth（AuthProvider, useAuth）
-│   ├── ui/                 # @a920604a/ui：共用 UI（GlobalShell, LoginPage, theme）
-│   └── config/             # 預留共用設定
-└── workers/
-    └── ebook-api/          # Cloudflare Worker（電子書 API + D1）
-```
+| 層級 | 技術 | 版本 |
+|---|---|---|
+| UI 框架 | React + TypeScript | 19.x / 5.8 |
+| 元件庫 | Chakra UI | 2.x |
+| 路由 | React Router DOM | 7.x |
+| 建置 | Vite + SWC | 6.x |
+| Monorepo | pnpm workspaces + NX | 10.x / 20.x |
+| 認證 | Firebase Auth（Google Sign-In） | 11.x |
+| 資料庫 | Firebase Firestore | 11.x |
+| 本機儲存 | IndexedDB（原生 API） | — |
+| 後端 API | Cloudflare Workers | — |
+| API DB | Cloudflare D1（SQLite） | — |
+| 部署 | Cloudflare Pages + Workers | — |
+| CI/CD | GitHub Actions | — |
 
-### apps/root 的定位
+### Cloudflare Worker API（ebook-api）
 
-`apps/root` 是整個 SPA 的**組裝點**，程式碼極少：
+端點（均需 `Authorization: Bearer <Firebase ID token>`）：
 
-- `App.tsx` — 設定 `MODULES` 導覽陣列，傳給 `<GlobalShell>`，組裝四個模組的 Route
-- `main.tsx` — 初始化 Firebase、掛載 ChakraProvider / AuthProvider
-- `pages/HubPage.tsx` — 首頁卡片列表
-
-所有功能邏輯都在各模組套件（`apps/ebook-reader/src/`、`apps/habit-tracker/src/`、…）內，`apps/root` 只負責把它們串起來部署。
-
-### GlobalShell（packages/ui）
-
-`@a920604a/ui` 匯出的 `GlobalShell` 是完全可配置的通用殼：
-
-```tsx
-import { GlobalShell } from '@a920604a/ui'
-import type { SidebarModule } from '@a920604a/ui'
-
-const MODULES: SidebarModule[] = [
-  { path: '/', label: '首頁', exact: true },
-  {
-    path: '/habit-tracker',
-    label: '習慣追蹤',
-    icon: <SomeIcon />,
-    subItems: [
-      { label: '儀表板', path: '/habit-tracker/dashboard' },
-      { label: '統計分析', path: '/habit-tracker/statistics' },
-    ],
-  },
-  // ...
-]
-
-<GlobalShell user={user} onLogout={logout} modules={MODULES} brandName="My App">
-  {/* 頁面內容 */}
-</GlobalShell>
-```
-
-設計特點（Apple HIG 風格）：
-- 桌面端：左側固定 Sidebar（240px），所有模組導覽在此，Topbar 極簡
-- 行動端：Topbar 漢堡選單 → 左滑 Drawer 導覽
-- 當前模組自動展開子頁面（filled active state，仿 macOS Finder）
-- Topbar 磨砂玻璃效果（backdrop-filter blur）
-
-### 技術棧
-
-| 層級 | 技術 |
-|------|------|
-| UI 框架 | React 19 + TypeScript |
-| 元件庫 | Chakra UI 2.x |
-| 路由 | React Router DOM v7 |
-| 建置工具 | Vite + NX 20 monorepo |
-| 套件管理 | pnpm workspaces |
-| 認證 | Firebase Auth（Google Sign-In） |
-| 資料庫 | Firebase Firestore |
-| 本機儲存 | IndexedDB（PDF 檔案） |
-| 後端 API | Cloudflare Workers |
-| API 資料庫 | Cloudflare D1（SQLite） |
-| 部署 | Cloudflare Pages（前端）+ Cloudflare Workers（API） |
-| CI/CD | GitHub Actions |
+| Method | Path | 說明 |
+|---|---|---|
+| `GET` | `/books?user_id=` | 取得書單 |
+| `POST` | `/books` | 新增書籍 |
+| `DELETE` | `/books/:id?user_id=` | 刪除書籍 + 進度 |
+| `GET` | `/progress/:bookId?user_id=` | 取得閱讀進度 |
+| `PUT` | `/progress/:bookId` | 更新閱讀進度 |
 
 ---
 
@@ -139,102 +150,136 @@ const MODULES: SidebarModule[] = [
 ### 前置需求
 
 - Node.js 20+
-- pnpm 10+
-- Firebase 專案（需 Firestore + Google Auth）
-- Cloudflare 帳號（電子書 API 功能需要）
+- pnpm 10+（`npm i -g pnpm`）
 
 ### 安裝
 
 ```bash
-git clone https://github.com/a920604a/a920604a-labs.git
+git clone git@github.com:a920604a/a920604a-labs.git
 cd a920604a-labs
 pnpm install
 ```
 
 ### 環境變數
 
-在**根目錄**建立 `.env`（Vite 透過 `envDir: '../../'` 讀取）：
+根目錄建立 `.env`（Vite 透過 `apps/root/vite.config.ts` 的 `envDir: '../../'` 讀取）：
 
 ```env
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-VITE_EBOOK_API_URL=https://ebook-api.<subdomain>.workers.dev
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_EBOOK_API_URL=https://ebook-api.a920604a.workers.dev
 ```
 
-在 `workers/ebook-api/` 建立 `.dev.vars`：
+`workers/ebook-api/.dev.vars`（wrangler dev 自動讀取）：
 
 ```env
-FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_PROJECT_ID=a920604a-labs
 ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-### 啟動開發伺服器
+### 啟動
 
 ```bash
-# 啟動主應用（前端）
+# 前端（主應用）
 pnpm --filter @a920604a/root dev
 # → http://localhost:5173
 
-# 啟動 Cloudflare Worker（電子書 API，選用）
+# Cloudflare Worker（電子書 API，選用）
 pnpm --filter @a920604a/ebook-api dev
+# → http://localhost:8787
 ```
 
-> **注意**：直接在根目錄執行 `pnpm dev` 會同時啟動前端與 Worker，
-> 但推薦各自啟動以方便查看各自的 log。
+> `pnpm dev`（根目錄）會用 NX 同時啟動所有有 `dev` script 的套件（apps/root + ebook-api worker），
+> 適合需要完整功能測試時使用。
 
-### 建置
+### 其他指令
 
 ```bash
-pnpm --filter @a920604a/root build
+pnpm --filter @a920604a/root build       # 前端 production build
+pnpm --filter @a920604a/root preview     # 預覽 build 結果
+pnpm lint                                # 全 workspace ESLint
+pnpm typecheck                           # 全 workspace tsc
+pnpm format                              # Prettier 格式化
 ```
 
 ---
 
 ## 部署
 
-### GitHub Secrets 設定
+### 方式一：Push 到 GitHub 自動部署（推薦）
 
-在 GitHub repo → Settings → Secrets and variables → Actions 新增：
+CI/CD 設定在 `.github/workflows/deploy.yml`，Push 到 `main` 分支自動觸發：
 
-| Secret | 說明 |
-|--------|------|
-| `FIREBASE_API_KEY` | Firebase 專案 API Key |
-| `FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain |
-| `FIREBASE_PROJECT_ID` | Firebase 專案 ID |
-| `FIREBASE_STORAGE_BUCKET` | Firebase Storage Bucket |
-| `FIREBASE_MESSAGING_SENDER_ID` | Firebase Sender ID |
-| `FIREBASE_APP_ID` | Firebase App ID |
-| `EBOOK_API_URL` | Cloudflare Worker URL |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API Token |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Account ID |
+1. **deploy-root** — `apps/root` 建置 → 部署到 Cloudflare Pages（`a920604a-labs`）
+2. **deploy-ebook-api** — `workers/ebook-api` 部署到 Cloudflare Workers
 
-### CI/CD 流程
+#### 設定 GitHub Secrets
 
-Push 到 `main` 分支後，GitHub Actions 自動執行：
+前往 GitHub repo → **Settings → Secrets and variables → Actions → New repository secret**，依序新增：
 
-1. **deploy-root** — 建置 React 應用並部署至 Cloudflare Pages（`apps/root`）
-2. **deploy-ebook-api** — 部署 Cloudflare Worker（`workers/ebook-api`）
+| Secret 名稱 | 取得方式 |
+|---|---|
+| `FIREBASE_API_KEY` | Firebase Console → 專案設定 → 一般 → 網頁應用程式 |
+| `FIREBASE_AUTH_DOMAIN` | 同上 |
+| `FIREBASE_PROJECT_ID` | 同上 |
+| `FIREBASE_STORAGE_BUCKET` | 同上 |
+| `FIREBASE_MESSAGING_SENDER_ID` | 同上 |
+| `FIREBASE_APP_ID` | 同上 |
+| `EBOOK_API_URL` | Worker 部署後的 URL（`https://ebook-api.<subdomain>.workers.dev`） |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare Dashboard → My Profile → API Tokens → Create Token（需 Pages + Workers 寫入權限） |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Dashboard → 右側欄 Account ID |
+
+#### 推送部署
+
+```bash
+git add .
+git commit -m "your message"
+git push origin main
+# → GitHub Actions 自動 build + deploy
+```
+
+### 方式二：手動部署
+
+```bash
+# 前端
+pnpm --filter @a920604a/root build
+pnpm wrangler pages deploy apps/root/dist --project-name=a920604a-labs
+
+# Worker
+pnpm wrangler deploy \
+  --var FIREBASE_PROJECT_ID:a920604a-labs \
+  --config workers/ebook-api/wrangler.jsonc
+```
 
 ---
 
-## Cloudflare 資源
+## 初次設定 Cloudflare 資源
 
-| 資源 | 名稱 | 說明 |
-|------|------|------|
-| Pages | `a920604a-labs` | 前端靜態網站 |
-| Worker | `ebook-api` | 電子書元數據 & 閱讀進度 API |
-| D1 | `ebook-db` | 電子書資料庫（SQLite） |
-
-### D1 Schema 初始化
+若是第一次部署，需先建立以下資源：
 
 ```bash
-cd workers/ebook-api
-pnpm wrangler d1 execute ebook-db --remote --file=schema.sql
+# 1. 建立 D1 資料庫
+pnpm wrangler d1 create ebook-db
+# 複製輸出的 database_id 填入 workers/ebook-api/wrangler.jsonc
+
+# 2. 初始化 schema
+pnpm wrangler d1 execute ebook-db \
+  --remote \
+  --file=workers/ebook-api/schema.sql \
+  --config=workers/ebook-api/wrangler.jsonc
+
+# 3. 建立 Cloudflare Pages 專案（第一次 deploy 時 wrangler 會自動建立）
 ```
+
+| Cloudflare 資源 | 名稱 |
+|---|---|
+| Pages | `a920604a-labs` |
+| Worker | `ebook-api` |
+| D1 | `ebook-db` |
 
 ---
 
