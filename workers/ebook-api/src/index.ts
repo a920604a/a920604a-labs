@@ -2,7 +2,6 @@ import { verifyFirebaseToken } from './auth'
 
 export interface Env {
   DB: D1Database
-  BOOKS_BUCKET: R2Bucket
   FIREBASE_PROJECT_ID: string
   ALLOWED_ORIGINS: string
 }
@@ -61,43 +60,28 @@ export default {
       if (userId !== uid) return new Response('Forbidden', { status: 403 })
 
       const { results } = await env.DB.prepare(
-        'SELECT * FROM books WHERE user_id = ? ORDER BY created_at DESC'
+        'SELECT id, user_id, name, category, created_at, last_read_time FROM books WHERE user_id = ? ORDER BY created_at DESC'
       ).bind(uid).all()
 
       return json(results, 200, cors)
     }
 
     // ── POST /books ────────────────────────────────────────────────────────
+    // Saves metadata only; PDF file is stored locally in the client's IndexedDB.
     if (req.method === 'POST' && path === '/books') {
       const uid = await authenticate(req, env)
       if (uid instanceof Response) return uid
 
-      const { id, name, category, data, user_id } = await req.json() as {
-        id: string; name: string; category: string; data: string; user_id: string
+      const { id, name, category, user_id } = await req.json() as {
+        id: string; name: string; category: string; user_id: string
       }
       if (user_id !== uid) return new Response('Forbidden', { status: 403 })
 
-      // Decode base64 data URL → binary
-      const base64 = data.split(',')[1]
-      const binaryStr = atob(base64)
-      const bytes = new Uint8Array(binaryStr.length)
-      for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
-
-      // Upload to R2
-      const r2Key = `${uid}/${id}.pdf`
-      await env.BOOKS_BUCKET.put(r2Key, bytes, {
-        httpMetadata: { contentType: 'application/pdf' },
-      })
-
-      // R2 public URL pattern — update to your custom domain if needed
-      const fileUrl = `https://pub-${env.BOOKS_BUCKET.toString()}.r2.dev/${r2Key}`
-
-      // Insert into D1
       await env.DB.prepare(
-        'INSERT INTO books (id, user_id, name, category, file_url) VALUES (?, ?, ?, ?, ?)'
-      ).bind(id, uid, name, category, fileUrl).run()
+        'INSERT OR IGNORE INTO books (id, user_id, name, category, file_url) VALUES (?, ?, ?, ?, ?)'
+      ).bind(id, uid, name, category, '').run()
 
-      return json({ file_url: fileUrl }, 201, cors)
+      return json({ ok: true }, 201, cors)
     }
 
     // ── DELETE /books/:id ──────────────────────────────────────────────────
@@ -110,10 +94,6 @@ export default {
       const userId = url.searchParams.get('user_id')
       if (userId !== uid) return new Response('Forbidden', { status: 403 })
 
-      // Delete from R2
-      await env.BOOKS_BUCKET.delete(`${uid}/${bookId}.pdf`)
-
-      // Delete progress and book record
       await env.DB.prepare('DELETE FROM reading_progress WHERE book_id = ? AND user_id = ?').bind(bookId, uid).run()
       await env.DB.prepare('DELETE FROM books WHERE id = ? AND user_id = ?').bind(bookId, uid).run()
 

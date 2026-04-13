@@ -9,12 +9,11 @@ import {
   where,
   orderBy,
 } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
-import { getFirebaseFirestore } from '@a920604a/auth'
+import { getFirebaseFirestore, getFirebaseAuth } from '@a920604a/auth'
 import { v4 as uuidv4 } from 'uuid'
 
 function getCurrentUserId() {
-  const user = getAuth().currentUser
+  const user = getFirebaseAuth().currentUser
   if (!user) {
     console.error('尚未登入')
     return null

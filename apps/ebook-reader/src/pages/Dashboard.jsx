@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getBooksFromSupabase, uploadToSupabase, deleteFromSupabase, getReadingProgress } from "../components/BookManager";
+import { getBooks, uploadBook, deleteBook, getReadingProgress } from "../components/BookManager";
 import { useAuth } from "@a920604a/auth";
 import { NavBar } from "@a920604a/ui";
 import { v4 as uuidv4 } from "uuid";
@@ -85,7 +85,7 @@ function Dashboard() {
 
 
             const localBooks = await getAllBooksFromIndexedDB();
-            const supabaseBooks = await getBooksFromSupabase(userId);
+            const supabaseBooks = await getBooks(userId);
 
             console.log("載入書籍...");
 
@@ -171,28 +171,11 @@ function Dashboard() {
                 // totalPages: 100, // TODO: 預設100頁，reader 讀取後更新
             };
 
-            // 上傳檔案至 Supabase
-            const fileUrl = await uploadToSupabase(newBook, userId);
-            // const fileName = uuidv4() + "-" + file.name;
-            // const { data, error } = await supabase.storage.from("ebooks").upload(fileName, file);
+            // 同步 metadata 到 Worker D1（失敗不中斷，PDF 仍可本機閱讀）
+            await uploadBook(newBook, userId);
 
-            if (!fileUrl) {
-                setLoading(false);
-                toast({
-                    title: "上傳失敗",
-                    description: "檔案上傳失敗，請再試一次。",
-                    status: "error",
-                    duration: 2000,
-                    isClosable: true,
-                });
-                return;
-            }
-
-            // 儲存書籍資料
-            // newBook.file_url = data?.Key;
-
-            // 儲存書籍資料到 IndexedDB
-            await saveBookToIndexedDB(newBook, userId, fileUrl);
+            // 儲存書籍（含 PDF data）到本機 IndexedDB
+            await saveBookToIndexedDB(newBook, userId);
 
             // 更新書籍列表
             const updatedBooks = await getAllBooksFromIndexedDB();
@@ -223,7 +206,7 @@ function Dashboard() {
 
         const userId = await getUserId();
         if (userId) {
-            await deleteFromSupabase(name, userId);
+            await deleteBook(id, userId);
         }
 
         const updatedBooks = await getAllBooksFromIndexedDB();
