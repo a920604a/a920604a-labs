@@ -61,21 +61,23 @@ export async function getBooksFromAPI(userId: string): Promise<Book[]> {
   return apiFetch<Book[]>(`/books?user_id=${userId}`)
 }
 
-/** Save book metadata to D1. PDF file stays in the client's IndexedDB only. */
+/** Upload PDF (as base64 data URL) → Worker stores in R2, records in D1 */
 export async function uploadBookToAPI(
-  book: { id: string; name: string; category: string },
+  book: { id: string; name: string; category: string; data: string },
   userId: string
-): Promise<void> {
-  await apiFetch<{ ok: boolean }>('/books', {
+): Promise<string> {
+  const result = await apiFetch<{ file_url: string }>('/books', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       id: book.id,
       name: book.name,
       category: book.category,
+      data: book.data, // base64 data URL
       user_id: userId,
     }),
   })
+  return result.file_url
 }
 
 export async function deleteBookFromAPI(bookId: string, userId: string): Promise<void> {
@@ -103,4 +105,3 @@ export async function saveReadingProgress(
     body: JSON.stringify({ user_id: userId, page_number: pageNumber, total_page: totalPage }),
   })
 }
-

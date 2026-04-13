@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getHabitById } from '../utils/firebaseDb';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { ArrowBackIcon } from '@chakra-ui/icons';
 import { Box, Button, Text, VStack, HStack, Badge } from '@chakra-ui/react';
-import TopBar from "../components/TopBar";
 
 function HabitCalendar() {
   const { habitId } = useParams();
@@ -56,11 +56,16 @@ function HabitCalendar() {
 
   return (
     <Box p={6} maxW="600px" mx="auto" boxShadow="md" borderRadius="md" bg="gray.50">
-      {/* <Button mb={4} onClick={() => navigate(-1)} colorScheme="blue" size="sm">← 返回</Button> */}
-      <TopBar 
-        backButtonText="返回儀表板" 
-        onBackClick={() => navigate(-1)} 
-      />
+      <Button
+        size="sm"
+        variant="ghost"
+        leftIcon={<ArrowBackIcon />}
+        onClick={() => navigate(-1)}
+        mb={4}
+        px={2}
+      >
+        返回
+      </Button>
 
       <VStack align="start" spacing={3} mb={6}>
         <Text fontSize="3xl" fontWeight="bold">{habit.name} 的打卡日曆</Text>

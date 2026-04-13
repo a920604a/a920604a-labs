@@ -51,7 +51,6 @@ function ReaderPage() {
     const [loading, setLoading] = useState(true);
     const [userId, setUserId] = useState(null);
     const [lastReadPage, setLastReadPage] = useState(null);
-    const [pdfUrl, setPdfUrl] = useState(null);
 
     const toast = useToast();
     const viewerRef = useRef(null);
@@ -81,19 +80,6 @@ function ReaderPage() {
                     setLastReadPage(progress.page_number);
                     setPageNumber(progress.page_number);
                 }
-
-                // PDF 存在本機 IndexedDB 的 data 欄位（base64 data URL）
-                if (book.data) {
-                    setPdfUrl(book.data);
-                } else {
-                    toast({
-                        title: "找不到書籍檔案",
-                        description: "此書籍的 PDF 不在此裝置，請重新上傳。",
-                        status: "warning",
-                        duration: 4000,
-                        isClosable: true,
-                    });
-                }
             } catch (err) {
                 toast({
                     title: "錯誤",
@@ -111,10 +97,10 @@ function ReaderPage() {
         initialize();
     }, [bookId, toast]);
 
-    const isLoading = loading || !selectedBook || !pdfUrl;
+    const isLoading = loading || !selectedBook;
 
     const handleBackToDashboard = () => {
-        navigate("/dashboard");
+        navigate("/ebook-reader/dashboard");
     };
 
     // 處理頁碼變動
@@ -187,7 +173,7 @@ function ReaderPage() {
                     <Box w="full" h="600px" overflow="hidden">
                         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.6.172/build/pdf.worker.min.js">
                             <Viewer
-                                fileUrl={pdfUrl}
+                                fileUrl={selectedBook.file_url}
                                 ref={viewerRef}
                                 plugins={[defaultLayoutPluginInstance, pageNavigationPluginInstance]}
                                 onPageChange={({ currentPage }) => handlePageChange(currentPage)}

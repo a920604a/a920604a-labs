@@ -7,7 +7,7 @@ export async function exportHabitsToPDF(habits, dateRangeText, userName = 'Anony
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
 
-    const page = pdfDoc.addPage([600, 750]);
+    let page = pdfDoc.addPage([600, 750]);
     const { height } = page.getSize();
 
     const fontUrl = (import.meta.env.BASE_URL || '/') + 'fonts/NotoSansTC-Regular.ttf';

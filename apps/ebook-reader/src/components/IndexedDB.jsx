@@ -40,9 +40,14 @@ export const saveBookToIndexedDB = async (book, userId,  fileUrl = "" ) => {
         id: book.id,
         name: book.name,
         user_id: userId,
-        data: book.data || null, // base64 data URL — stored locally, not sent to server
+        // data: book.data, // 這裡保留原始的 data
+        // file_url: fileUrl,
         category: book.category || "",
     };
+    // 如果 fileUrl 存在，則加入 metadata
+    if (fileUrl) {
+        bookMetadata.file_url = fileUrl;
+    }
     
 
 

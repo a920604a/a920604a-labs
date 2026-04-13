@@ -16,6 +16,7 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "allowJs": true,
+    "types": ["vite/client"],
     "paths": {
       "@/*": ["./src/*"]
     }

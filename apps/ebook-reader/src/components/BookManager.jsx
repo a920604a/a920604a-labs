@@ -1,3 +1,7 @@
+/**
+ * BookManager — replaces all Supabase calls with Cloudflare Worker API.
+ * Keeps the same exported function names so Dashboard/ReaderPage don't need changes.
+ */
 import {
   getBooksFromAPI,
   uploadBookToAPI,
@@ -8,7 +12,7 @@ import {
 
 // ── Books ─────────────────────────────────────────────────────────────────────
 
-export const getBooks = async (userId) => {
+export const getBooksFromSupabase = async (userId) => {
   try {
     return await getBooksFromAPI(userId)
   } catch (err) {
@@ -17,15 +21,17 @@ export const getBooks = async (userId) => {
   }
 }
 
-export const uploadBook = async (book, userId) => {
+export const uploadToSupabase = async (book, userId) => {
   try {
     await uploadBookToAPI(book, userId)
+    return true
   } catch (err) {
-    console.error('上傳書籍 metadata 失敗:', err)
+    console.error('上傳書籍失敗:', err)
+    return null
   }
 }
 
-export const deleteBook = async (bookId, userId) => {
+export const deleteFromSupabase = async (bookId, userId) => {
   try {
     await deleteBookFromAPI(bookId, userId)
   } catch (err) {

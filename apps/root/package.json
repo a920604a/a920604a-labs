@@ -12,6 +12,10 @@
   "dependencies": {
     "@a920604a/auth": "workspace:*",
     "@a920604a/ui": "workspace:*",
+    "@a920604a/to-do-list": "workspace:*",
+    "@a920604a/habit-tracker": "workspace:*",
+    "@a920604a/resign-stamp": "workspace:*",
+    "@a920604a/ebook-reader": "workspace:*",
     "@chakra-ui/icons": "^2.2.4",
     "@chakra-ui/react": "^2.10.7",
     "@emotion/react": "^11.14.0",

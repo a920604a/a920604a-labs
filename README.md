@@ -54,28 +54,66 @@
 ```
 a920604a-labs/
 ├── apps/
-│   ├── root/               # 主 React 應用（整合所有模組）
+│   ├── root/               # 主 SPA 入口（薄殼，只含路由組裝與 HubPage）
 │   │   └── src/
-│   │       ├── components/
-│   │       │   └── GlobalShell.tsx   # 全域導覽（Topbar + Sidebar + Drawer）
-│   │       ├── pages/
-│   │       │   └── HubPage.tsx       # 首頁 App Hub
-│   │       └── modules/
-│   │           ├── resign-stamp/     # 離職集章模組
-│   │           ├── habit-tracker/    # 習慣追蹤模組
-│   │           ├── to-do-list/       # 待辦清單模組
-│   │           └── ebook-reader/     # 電子書閱讀模組
-│   ├── resign-stamp/       # 獨立開發用（legacy）
-│   ├── habit-tracker/      # 獨立開發用（legacy）
-│   ├── to-do-list/         # 獨立開發用（legacy）
-│   └── ebook-reader/       # 獨立開發用（legacy）
+│   │       ├── App.tsx         # BrowserRouter + MODULES 導覽設定 + GlobalShell
+│   │       ├── main.tsx        # Firebase 初始化 + React 掛載
+│   │       └── pages/
+│   │           └── HubPage.tsx # 首頁 App Hub
+│   ├── ebook-reader/       # @a920604a/ebook-reader（workspace 套件）
+│   ├── habit-tracker/      # @a920604a/habit-tracker（workspace 套件）
+│   ├── resign-stamp/       # @a920604a/resign-stamp（workspace 套件）
+│   └── to-do-list/         # @a920604a/to-do-list（workspace 套件）
 ├── packages/
-│   ├── auth/               # 共用 Firebase Auth 套件（@a920604a/auth）
-│   ├── ui/                 # 共用 UI 元件（@a920604a/ui）
-│   └── config/             # 共用 tsconfig / vite config
+│   ├── auth/               # @a920604a/auth：Firebase Auth（AuthProvider, useAuth）
+│   ├── ui/                 # @a920604a/ui：共用 UI（GlobalShell, LoginPage, theme）
+│   └── config/             # 預留共用設定
 └── workers/
-    └── ebook-api/          # Cloudflare Worker（電子書 API）
+    └── ebook-api/          # Cloudflare Worker（電子書 API + D1）
 ```
+
+### apps/root 的定位
+
+`apps/root` 是整個 SPA 的**組裝點**，程式碼極少：
+
+- `App.tsx` — 設定 `MODULES` 導覽陣列，傳給 `<GlobalShell>`，組裝四個模組的 Route
+- `main.tsx` — 初始化 Firebase、掛載 ChakraProvider / AuthProvider
+- `pages/HubPage.tsx` — 首頁卡片列表
+
+所有功能邏輯都在各模組套件（`apps/ebook-reader/src/`、`apps/habit-tracker/src/`、…）內，`apps/root` 只負責把它們串起來部署。
+
+### GlobalShell（packages/ui）
+
+`@a920604a/ui` 匯出的 `GlobalShell` 是完全可配置的通用殼：
+
+```tsx
+import { GlobalShell } from '@a920604a/ui'
+import type { SidebarModule } from '@a920604a/ui'
+
+const MODULES: SidebarModule[] = [
+  { path: '/', label: '首頁', exact: true },
+  {
+    path: '/habit-tracker',
+    label: '習慣追蹤',
+    icon: <SomeIcon />,
+    subItems: [
+      { label: '儀表板', path: '/habit-tracker/dashboard' },
+      { label: '統計分析', path: '/habit-tracker/statistics' },
+    ],
+  },
+  // ...
+]
+
+<GlobalShell user={user} onLogout={logout} modules={MODULES} brandName="My App">
+  {/* 頁面內容 */}
+</GlobalShell>
+```
+
+設計特點（Apple HIG 風格）：
+- 桌面端：左側固定 Sidebar（240px），所有模組導覽在此，Topbar 極簡
+- 行動端：Topbar 漢堡選單 → 左滑 Drawer 導覽
+- 當前模組自動展開子頁面（filled active state，仿 macOS Finder）
+- Topbar 磨砂玻璃效果（backdrop-filter blur）
 
 ### 技術棧
 
@@ -85,7 +123,7 @@ a920604a-labs/
 | 元件庫 | Chakra UI 2.x |
 | 路由 | React Router DOM v7 |
 | 建置工具 | Vite + NX 20 monorepo |
-| 套件管理 | pnpm |
+| 套件管理 | pnpm workspaces |
 | 認證 | Firebase Auth（Google Sign-In） |
 | 資料庫 | Firebase Firestore |
 | 本機儲存 | IndexedDB（PDF 檔案） |
@@ -99,8 +137,9 @@ a920604a-labs/
 ## 本地開發
 
 ### 前置需求
+
 - Node.js 20+
-- pnpm 9+
+- pnpm 10+
 - Firebase 專案（需 Firestore + Google Auth）
 - Cloudflare 帳號（電子書 API 功能需要）
 
@@ -114,7 +153,7 @@ pnpm install
 
 ### 環境變數
 
-在根目錄建立 `.env`：
+在**根目錄**建立 `.env`（Vite 透過 `envDir: '../../'` 讀取）：
 
 ```env
 VITE_FIREBASE_API_KEY=...
@@ -130,20 +169,22 @@ VITE_EBOOK_API_URL=https://ebook-api.<subdomain>.workers.dev
 
 ```env
 FIREBASE_PROJECT_ID=your-project-id
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174
+ALLOWED_ORIGINS=http://localhost:5173
 ```
 
 ### 啟動開發伺服器
 
 ```bash
-# 啟動主應用（含所有模組）
+# 啟動主應用（前端）
 pnpm --filter @a920604a/root dev
+# → http://localhost:5173
 
-# 啟動 Cloudflare Worker（電子書 API）
-cd workers/ebook-api && pnpm dev
+# 啟動 Cloudflare Worker（電子書 API，選用）
+pnpm --filter @a920604a/ebook-api dev
 ```
 
-主應用預設在 http://localhost:5173
+> **注意**：直接在根目錄執行 `pnpm dev` 會同時啟動前端與 Worker，
+> 但推薦各自啟動以方便查看各自的 log。
 
 ### 建置
 
@@ -175,8 +216,8 @@ pnpm --filter @a920604a/root build
 
 Push 到 `main` 分支後，GitHub Actions 自動執行：
 
-1. **deploy-root** — 建置 React 應用並部署至 Cloudflare Pages
-2. **deploy-ebook-api** — 部署 Cloudflare Worker（電子書 API）
+1. **deploy-root** — 建置 React 應用並部署至 Cloudflare Pages（`apps/root`）
+2. **deploy-ebook-api** — 部署 Cloudflare Worker（`workers/ebook-api`）
 
 ---
 
@@ -193,23 +234,6 @@ Push 到 `main` 分支後，GitHub Actions 自動執行：
 ```bash
 cd workers/ebook-api
 pnpm wrangler d1 execute ebook-db --remote --file=schema.sql
-```
-
----
-
-## 專案結構——resign-stamp 模組說明
-
-```
-modules/resign-stamp/
-├── pages/
-│   ├── Dashboard.tsx     # 主頁：集章板 + 進度 + 成就 + 每日箴言
-│   └── Reasons.tsx       # 理由總覽：搜尋 / 排序 / 匯出
-└── components/
-    ├── StampGrid.tsx      # 100 格印章格（點擊蓋章）
-    ├── ReasonModal.tsx    # 蓋章理由輸入 Modal
-    ├── ProgressSection.tsx# 進度條 + 三欄統計 + 匯出 PDF 按鈕
-    ├── Achievements.tsx   # 成就徽章（25 / 50 / 75 / 100 章）
-    └── DailyQuote.tsx     # 每日輪播離職箴言
 ```
 
 ---
