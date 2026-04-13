@@ -38,7 +38,7 @@ jobs:
 
       # wrangler 裝在 workers/ebook-api，用 pnpm --filter 執行以確保找得到 binary
       - name: Deploy to Cloudflare Pages
-        run: pnpm --filter @a920604a/ebook-api exec wrangler pages deploy apps/root/dist --project-name=a920604a-labs
+        run: pnpm --filter @a920604a/ebook-api exec wrangler pages deploy $GITHUB_WORKSPACE/apps/root/dist --project-name=a920604a-labs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
