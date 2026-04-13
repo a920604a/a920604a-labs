@@ -1,144 +1,172 @@
-import React from 'react';
 import {
+  Badge,
   Box,
+  Center,
   Checkbox,
+  Divider,
+  Flex,
   HStack,
-  Tag,
-  TagLabel,
-  Text,
-  VStack,
-  Select,
   IconButton,
+  Text,
   Tooltip,
-  Icon,
+  VStack,
+  useColorModeValue,
 } from '@chakra-ui/react';
-import {
-  FiEdit2,
-  FiTrash2,
-  FiClock,
-  FiCalendar,
-} from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiClock, FiCalendar, FiEye } from 'react-icons/fi';
 
-const tagColorMap = {
-  工作: 'red',
-  學習: 'green',
-  個人: 'blue',
-  其他: 'gray',
-};
+const TAG_SCHEME = { 工作: 'red', 學習: 'teal', 個人: 'blue', 其他: 'gray' };
 
-export default function TodoList({
-  todos,
-  onToggle,
-  onDelete,
-  onEdit,
-  onView,
-  filter,
-  setFilter,
-  tags,
-}) {
-  const filteredTodos = todos
-    .filter((todo) => filter === '全部' || todo.tag === filter)
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+function DeadlineBadge({ deadline }) {
+  if (!deadline) return null;
+  const d    = new Date(deadline);
+  const diff = Math.ceil((d - new Date()) / 86400000);
+  const color = diff < 0 ? 'red' : diff <= 2 ? 'orange' : diff <= 5 ? 'yellow' : 'gray';
+  const label =
+    diff < 0  ? `逾期 ${-diff} 天` :
+    diff === 0 ? '今天到期' :
+    `${diff} 天後到期`;
+  return (
+    <Badge colorScheme={color} borderRadius="md" fontSize="xs" px={2}>
+      {label}
+    </Badge>
+  );
+}
+
+export default function TodoList({ todos, onToggle, onDelete, onEdit, onView, filter, setFilter, tags }) {
+  const cardBg     = useColorModeValue('white',    'gray.800');
+  const cardBorder = useColorModeValue('gray.100', 'gray.700');
+  const metaColor  = useColorModeValue('gray.400', 'gray.500');
+  const emptyColor = useColorModeValue('gray.400', 'gray.500');
 
   const handleBoxClick = (e, todo) => {
-    const target = e.target;
-    if (
-      target.closest('button') ||
-      target.closest('input[type="checkbox"]') ||
-      target.closest('label') ||
-      target.closest('svg')
-    ) {
+    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('label') || e.target.closest('svg'))
       return;
-    }
     onView(todo);
   };
 
+  if (todos.length === 0) {
+    return (
+      <Center py={14}>
+        <VStack spacing={3}>
+          <Text fontSize="5xl">📋</Text>
+          <Text color={emptyColor} fontSize="md">沒有待辦事項</Text>
+        </VStack>
+      </Center>
+    );
+  }
+
   return (
     <VStack spacing={3} align="stretch">
-      <Select value={filter} onChange={(e) => setFilter(e.target.value)} mb={3}>
-        <option value="全部">全部</option>
-        {tags.map((t) => (
-          <option key={t} value={t}>
-            {t}
-          </option>
-        ))}
-      </Select>
-
-      {filteredTodos.map((todo) => (
-        <Box
-          key={todo.id}
-          p={4}
-          borderWidth={1}
-          borderRadius="md"
-          boxShadow="md"
-          bg={todo.complete ? 'gray.100' : 'white'}
-          _hover={{ bg: 'gray.50' }}
-          cursor="pointer"
-          onClick={(e) => handleBoxClick(e, todo)}
-        >
-          <HStack justify="space-between" mb={2}>
-            <Text fontWeight="bold" fontSize="lg" noOfLines={1}>
-              {todo.title}
-            </Text>
-            <HStack spacing={1}>
+      {todos.map((todo) => {
+        const tagColor = TAG_SCHEME[todo.tag] || 'gray';
+        return (
+          <Box
+            key={todo.id}
+            bg={cardBg}
+            border="1px solid"
+            borderColor={cardBorder}
+            borderLeft="4px solid"
+            borderLeftColor={todo.complete ? 'gray.300' : `${tagColor}.400`}
+            borderRadius="xl"
+            p={4}
+            opacity={todo.complete ? 0.6 : 1}
+            cursor="pointer"
+            onClick={(e) => handleBoxClick(e, todo)}
+            _hover={{ shadow: 'md', borderLeftColor: todo.complete ? 'gray.400' : `${tagColor}.500` }}
+            transition="all 0.15s"
+          >
+            <Flex align="flex-start" gap={3}>
+              {/* Checkbox */}
               <Checkbox
                 isChecked={todo.complete}
-                onClick={(e) => e.stopPropagation()}
                 onChange={() => onToggle(todo.id)}
+                onClick={(e) => e.stopPropagation()}
+                mt={0.5}
+                colorScheme="blue"
+                size="lg"
+                flexShrink={0}
               />
-              <Tooltip label="編輯">
-                <IconButton
-                  icon={<FiEdit2 />}
-                  size="sm"
-                  variant="ghost"
-                  colorScheme="teal"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(todo);
-                  }}
-                  aria-label="編輯"
-                />
-              </Tooltip>
-              <Tooltip label="刪除">
-                <IconButton
-                  icon={<FiTrash2 />}
-                  size="sm"
-                  variant="ghost"
-                  colorScheme="red"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(todo.id);
-                  }}
-                  aria-label="刪除"
-                />
-              </Tooltip>
-            </HStack>
-          </HStack>
 
-          <Text mb={2} whiteSpace="pre-wrap" color="gray.700" isTruncated>
-            {todo.content || '（無內容）'}
-          </Text>
+              {/* Content */}
+              <Box flex={1} minW={0}>
+                <Flex align="center" justify="space-between" gap={2} flexWrap="wrap">
+                  <Text
+                    fontWeight={700}
+                    fontSize="md"
+                    noOfLines={1}
+                    textDecoration={todo.complete ? 'line-through' : 'none'}
+                    color={todo.complete ? metaColor : undefined}
+                  >
+                    {todo.title}
+                  </Text>
+                  <HStack spacing={1} flexShrink={0}>
+                    <DeadlineBadge deadline={todo.deadline} />
+                    <Badge colorScheme={tagColor} borderRadius="md" fontSize="xs">
+                      {todo.tag}
+                    </Badge>
+                  </HStack>
+                </Flex>
 
-          <HStack fontSize="sm" color="gray.500" spacing={4} mb={1}>
-            <HStack spacing={1}>
-              <Icon as={FiCalendar} />
-              <Text>{new Date(todo.created_at).toLocaleString()}</Text>
-            </HStack>
-            <HStack spacing={1}>
-              <Icon as={FiClock} />
-              <Text>{todo.deadline ? new Date(todo.deadline).toLocaleDateString() : '無'}</Text>
-            </HStack>
-          </HStack>
+                {todo.content && (
+                  <Text fontSize="sm" color={metaColor} noOfLines={2} mt={1} lineHeight="tall">
+                    {todo.content}
+                  </Text>
+                )}
 
-          <Text fontSize="xs" color="gray.400" mb={1}>
-            最後更新：{new Date(todo.updated_at).toLocaleString()}
-          </Text>
+                <Divider my={2} />
 
-          <Tag colorScheme={tagColorMap[todo.tag] || 'gray'}>
-            <TagLabel>{todo.tag}</TagLabel>
-          </Tag>
-        </Box>
-      ))}
+                <Flex align="center" justify="space-between">
+                  <HStack spacing={4} fontSize="xs" color={metaColor}>
+                    <HStack spacing={1}>
+                      <FiCalendar size="11px" />
+                      <Text>{new Date(todo.created_at).toLocaleDateString('zh-TW')}</Text>
+                    </HStack>
+                    {todo.deadline && (
+                      <HStack spacing={1}>
+                        <FiClock size="11px" />
+                        <Text>{new Date(todo.deadline).toLocaleDateString('zh-TW')}</Text>
+                      </HStack>
+                    )}
+                  </HStack>
+
+                  <HStack spacing={0}>
+                    <Tooltip label="詳情" placement="top" hasArrow openDelay={400}>
+                      <IconButton
+                        icon={<FiEye size="14px" />}
+                        size="sm"
+                        variant="ghost"
+                        colorScheme="gray"
+                        onClick={(e) => { e.stopPropagation(); onView(todo); }}
+                        aria-label="詳情"
+                      />
+                    </Tooltip>
+                    <Tooltip label="編輯" placement="top" hasArrow openDelay={400}>
+                      <IconButton
+                        icon={<FiEdit2 size="14px" />}
+                        size="sm"
+                        variant="ghost"
+                        colorScheme="blue"
+                        onClick={(e) => { e.stopPropagation(); onEdit(todo); }}
+                        aria-label="編輯"
+                      />
+                    </Tooltip>
+                    <Tooltip label="刪除" placement="top" hasArrow openDelay={400}>
+                      <IconButton
+                        icon={<FiTrash2 size="14px" />}
+                        size="sm"
+                        variant="ghost"
+                        colorScheme="red"
+                        onClick={(e) => { e.stopPropagation(); onDelete(todo.id); }}
+                        aria-label="刪除"
+                      />
+                    </Tooltip>
+                  </HStack>
+                </Flex>
+              </Box>
+            </Flex>
+          </Box>
+        );
+      })}
     </VStack>
   );
 }

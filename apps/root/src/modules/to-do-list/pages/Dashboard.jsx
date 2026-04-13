@@ -1,155 +1,158 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Text,
-  Spinner,
-  Center,
-  useToast,
-  Flex
+  Box, Center, Container, Divider, Flex, Heading, HStack,
+  Spinner, Text, useColorModeValue, VStack,
 } from '@chakra-ui/react';
-import 'react-calendar/dist/Calendar.css';
+import { WarningTwoIcon } from '@chakra-ui/icons';
+import { onAuthStateChanged } from 'firebase/auth';
 
-import StatsView from '../components/StatsView';
+import StatsView    from '../components/StatsView';
 import CalendarView from '../components/CalendarView';
-import ListView from '../components/ListView';
+import ListView     from '../components/ListView';
 import LayoutSwitcher from '../components/LayoutSwitcher';
-import { getAllTodos} from '../utils/firebaseDb';
-import { getFirebaseAuth } from '@a920604a/auth';
-import {  onAuthStateChanged } from 'firebase/auth';
-import { useAuth } from '@a920604a/auth';
 
-const tags = ['工作', '學習', '個人', '其他'];
+import { getAllTodos }      from '../utils/firebaseDb';
+import { getFirebaseAuth } from '@a920604a/auth';
+import { useAuth }         from '@a920604a/auth';
+
+const TAGS = ['工作', '學習', '個人', '其他'];
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const [todos, setTodos] = useState([]);
-  const [page, setPage] = useState('list'); // 預覽模式：list, stats, calendar
-  const [loading, setLoading] = useState(false);
-  const [userName, setUserName] = useState('');
-  const toast = useToast();
+  const navigate   = useNavigate();
+  const { user }   = useAuth();
+  const [todos,     setTodos]    = useState([]);
+  const [page,      setPage]     = useState('list');
+  const [loading,   setLoading]  = useState(false);
+  const [userName,  setUserName] = useState('');
 
   const fetchTodos = useCallback(async () => {
     try {
       setLoading(true);
-      const todos = await getAllTodos();
-      setTodos(todos);
-    } catch (err) {
-      console.error('取得待辦清單失敗', err);
-      toast({
-        title: '讀取失敗',
-        description: '無法取得待辦清單資料，請稍後再試。',
-        status: 'error',
-        duration: 4000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
+      setTodos(await getAllTodos());
+    } catch { /* silent */ }
+    finally { setLoading(false); }
+  }, []);
 
-
-  // 登入狀態監聽
   useEffect(() => {
-      const unsubscribe = onAuthStateChanged(getFirebaseAuth(), async (user) => {
-          if (user) {
-              setUserName(user.displayName || '親愛的用戶');
-              await fetchTodos();
-          } else {
-              navigate('/');
-          }
-      });
-      return () => unsubscribe();
+    const unsub = onAuthStateChanged(getFirebaseAuth(), async (u) => {
+      if (u) { setUserName(u.displayName || ''); await fetchTodos(); }
+      else   { navigate('/'); }
+    });
+    return () => unsub();
   }, [user, navigate, fetchTodos]);
 
+  // Near-deadline todos (next 5 days, incomplete)
+  const alertTodos = todos.filter((t) => {
+    if (t.complete || !t.deadline) return false;
+    const diff = Math.ceil((new Date(t.deadline) - new Date()) / 86400000);
+    return diff >= 0 && diff <= 5;
+  }).sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
 
-  const getNearDeadlineTodos = (todos) => {
-  const today = new Date();
-    return todos
-      .filter((todo) => {
-        if (!todo.deadline) return false;
-        const deadline = new Date(todo.deadline);
-        const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
-        return diffDays >= 0 && diffDays <= 5 && !todo.complete;
-      })
-      .sort((a, b) => {
-        const aDays = Math.ceil((new Date(a.deadline) - today) / (1000 * 60 * 60 * 24));
-        const bDays = Math.ceil((new Date(b.deadline) - today) / (1000 * 60 * 60 * 24));
-        return aDays - bDays;
-      });
-  };
+  const cardBg    = useColorModeValue('white',     'gray.800');
+  const border    = useColorModeValue('gray.100',  'gray.700');
+  const subText   = useColorModeValue('gray.500',  'gray.400');
+  const alertBg   = useColorModeValue('orange.50', 'orange.900');
+  const alertBorder = useColorModeValue('orange.200', 'orange.700');
 
-  const getDeadlineColor = (deadline) => {
-    const today = new Date();
-    const d = new Date(deadline);
-    const diffDays = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (diffDays <= 0) return 'red.500';
-    if (diffDays <= 2) return 'orange.400';
-    return 'yellow.500';
-  };
-
-
-  const nearDeadlineTodos = getNearDeadlineTodos(todos);
-
-  if (loading) {
+  if (loading && todos.length === 0) {
     return (
-      <Center h="100vh">
-        <Spinner size="xl" color="teal.500" />
+      <Center minH="100vh">
+        <Spinner size="xl" color="blue.400" thickness="4px" />
       </Center>
     );
   }
 
   return (
-    <Box p={5} maxW="600px" mx="auto">
-      {userName && (
-        <Text fontSize="md" color="gray.600" mb={4}>
-          歡迎回來，{userName}！
-        </Text>
-      )}
+    <Container maxW="2xl" py={8} px={{ base: 4, md: 8 }}>
+      <VStack spacing={6} align="stretch">
 
-      {nearDeadlineTodos.map((todo) => (
-        <Box
-          key={todo.id}
-          mb={2}
-          p={3}
-          borderLeft="4px solid"
-          borderColor={getDeadlineColor(todo.deadline)}
-          bg="white"
-          borderRadius="md"
-          shadow="sm"
-        >
-          <Text fontWeight="medium">{todo.title}</Text>
-          <Flex justify="space-between" align="center">
-            <Text fontSize="sm" color="gray.600">
-              截止日期：{new Date(todo.deadline).toLocaleDateString()}
+        {/* ── Header ──────────────────────────────────────────── */}
+        <Box>
+          <Heading size="xl" fontWeight={800} color={useColorModeValue('blue.500', 'blue.300')}>
+            📝 待辦清單
+          </Heading>
+          {userName && (
+            <Text color={subText} mt={1} fontSize="sm">
+              歡迎回來，{userName}！今天有什麼要完成的？
             </Text>
-            <Text
-              fontSize="sm"
-              color={getDeadlineColor(todo.deadline)}
-              fontWeight="bold"
-            >
-              {(() => {
-                const days = Math.ceil((new Date(todo.deadline) - new Date()) / (1000 * 60 * 60 * 24));
-                if (days <= 0) return '🔥 今天到期';
-                if (days <= 2) return '⚠️ 非常緊急';
-                return '⏳ 即將到期';
-              })()}
-            </Text>
-          </Flex>
-
-
+          )}
         </Box>
-      ))}
 
+        {/* ── Summary stats ───────────────────────────────────── */}
+        <HStack
+          bg={cardBg}
+          border="1px solid"
+          borderColor={border}
+          borderRadius="xl"
+          p={4}
+          spacing={0}
+          shadow="sm"
+          divider={<Divider orientation="vertical" h="40px" />}
+        >
+          {[
+            { label: '全部',   value: todos.length,                           color: 'blue.500'  },
+            { label: '未完成', value: todos.filter(t => !t.complete).length,  color: 'orange.400'},
+            { label: '已完成', value: todos.filter(t =>  t.complete).length,  color: 'green.500' },
+            { label: '即將到期',value: alertTodos.length,                     color: 'red.400'   },
+          ].map(({ label, value, color }) => (
+            <VStack key={label} flex={1} spacing={0} py={1}>
+              <Text fontSize="xl" fontWeight={800} color={color}>{value}</Text>
+              <Text fontSize="xs" color={subText}>{label}</Text>
+            </VStack>
+          ))}
+        </HStack>
 
-      <LayoutSwitcher page={page} setPage={setPage} />
+        {/* ── Deadline alerts ─────────────────────────────────── */}
+        {alertTodos.length > 0 && (
+          <Box
+            bg={alertBg}
+            border="1px solid"
+            borderColor={alertBorder}
+            borderLeft="4px solid"
+            borderLeftColor="orange.400"
+            borderRadius="xl"
+            p={4}
+          >
+            <HStack mb={3} spacing={2}>
+              <WarningTwoIcon color="orange.400" />
+              <Text fontWeight={700} fontSize="sm" color={useColorModeValue('orange.700', 'orange.200')}>
+                即將到期（{alertTodos.length} 項）
+              </Text>
+            </HStack>
+            <VStack spacing={2} align="stretch">
+              {alertTodos.map((t) => {
+                const diff = Math.ceil((new Date(t.deadline) - new Date()) / 86400000);
+                return (
+                  <Flex key={t.id} justify="space-between" align="center">
+                    <Text fontSize="sm" fontWeight={500} noOfLines={1} flex={1}>
+                      {t.title}
+                    </Text>
+                    <Text
+                      fontSize="xs"
+                      fontWeight={700}
+                      color={diff === 0 ? 'red.500' : diff <= 2 ? 'orange.500' : 'yellow.600'}
+                      ml={3}
+                      flexShrink={0}
+                    >
+                      {diff === 0 ? '🔥 今天到期' : diff <= 2 ? `⚠️ ${diff} 天後` : `⏳ ${diff} 天後`}
+                    </Text>
+                  </Flex>
+                );
+              })}
+            </VStack>
+          </Box>
+        )}
 
-      {page === 'list' && (<ListView todos={todos} tags={tags} />)}
-      {page === 'stats' && <StatsView todos={todos} tags={tags} />}
-      {page === 'calendar' && <CalendarView todos={todos} />}
-    </Box>
+        {/* ── View switcher ───────────────────────────────────── */}
+        <LayoutSwitcher page={page} setPage={setPage} />
+
+        {/* ── Content ─────────────────────────────────────────── */}
+        {page === 'list'     && <ListView todos={todos} tags={TAGS} />}
+        {page === 'stats'    && <StatsView todos={todos} tags={TAGS} />}
+        {page === 'calendar' && <CalendarView todos={todos} />}
+
+      </VStack>
+    </Container>
   );
 }

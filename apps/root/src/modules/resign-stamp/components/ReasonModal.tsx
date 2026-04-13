@@ -1,57 +1,113 @@
-import React, { useState } from "react";
+import { useEffect, useState } from 'react'
+import {
+  Button,
+  Flex,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Text,
+  Textarea,
+  useColorModeValue,
+} from '@chakra-ui/react'
+
+const MAX_CHARS = 200
 
 interface ReasonModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (reason: string) => void;
-  initialReason?: string;
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (reason: string) => void
+  stampIndex?: number
+  initialReason?: string
 }
 
-const ReasonModal: React.FC<ReasonModalProps> = ({
+export default function ReasonModal({
   isOpen,
   onClose,
   onSubmit,
-  initialReason = "",
-}) => {
-  const [reason, setReason] = useState(initialReason);
+  stampIndex,
+  initialReason = '',
+}: ReasonModalProps) {
+  const [reason, setReason] = useState(initialReason)
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) setReason(initialReason)
+  }, [isOpen, initialReason])
+
+  const handleClose = () => {
+    setReason('')
+    onClose()
+  }
+
+  const handleSubmit = () => {
+    if (reason.trim()) {
+      onSubmit(reason.trim())
+      setReason('')
+    }
+  }
+
+  const remaining = MAX_CHARS - reason.length
+  const countColor = remaining < 20 ? 'red.400' : useColorModeValue('gray.400', 'gray.500')
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded shadow-lg w-96">
-        <h2 className="text-xl mb-4">請輸入理由</h2>
-        <textarea
-          rows={4}
-          className="w-full border rounded p-2 mb-4"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder="輸入蓋章原因或備註..."
-        />
-        <div className="flex justify-end space-x-3">
-          <button
-            className="px-4 py-2 border rounded"
-            onClick={() => {
-              setReason("");
-              onClose();
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-            disabled={reason.trim() === ""}
-            onClick={() => {
-              onSubmit(reason.trim());
-              setReason("");
-            }}
-          >
-            Stamp
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+    <Modal isOpen={isOpen} onClose={handleClose} isCentered size="md" motionPreset="scale">
+      <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.500" />
+      <ModalContent borderRadius="2xl" overflow="hidden">
+        <ModalHeader
+          bgGradient="linear(to-r, red.400, orange.400)"
+          color="white"
+          py={5}
+          px={6}
+          fontSize="lg"
+          fontWeight={700}
+        >
+          🔖 蓋第 {stampIndex} 章
+          <Text fontSize="sm" fontWeight={400} mt={1} opacity={0.9}>
+            請記錄這次想離職的原因
+          </Text>
+        </ModalHeader>
+        <ModalCloseButton color="white" top={4} right={4} />
 
-export default ReasonModal;
+        <ModalBody pt={5} pb={2} px={6}>
+          <Textarea
+            value={reason}
+            onChange={(e) => {
+              if (e.target.value.length <= MAX_CHARS) setReason(e.target.value)
+            }}
+            placeholder="例如：老闆又在無理取鬧、加班沒有補償、薪水三年沒漲…"
+            rows={5}
+            resize="none"
+            borderRadius="lg"
+            focusBorderColor="red.400"
+            fontSize="md"
+            autoFocus
+          />
+          <Flex justify="flex-end" mt={1}>
+            <Text fontSize="xs" color={countColor}>
+              {remaining} / {MAX_CHARS}
+            </Text>
+          </Flex>
+        </ModalBody>
+
+        <ModalFooter gap={3} pt={3} pb={5} px={6}>
+          <Button variant="ghost" onClick={handleClose} borderRadius="lg">
+            取消
+          </Button>
+          <Button
+            colorScheme="red"
+            onClick={handleSubmit}
+            isDisabled={reason.trim().length === 0}
+            borderRadius="lg"
+            leftIcon={<>🔖</>}
+            minW="110px"
+          >
+            蓋章確認
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
+}
