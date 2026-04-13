@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBooksFromSupabase, uploadToSupabase, deleteFromSupabase, getReadingProgress } from "../components/BookManager";
 import { useAuth } from "@a920604a/auth";
-import { NavBar } from "@a920604a/ui";
 import { v4 as uuidv4 } from "uuid";
 import { clearIndexedDB, getAllBooksFromIndexedDB, saveBookToIndexedDB, deleteBookFromIndexedDB } from "../components/IndexedDB";
 import {
@@ -15,7 +14,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 function Dashboard() {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const [books, setBooks] = useState([]);
     const [file, setFile] = useState(null);
     const [category, setCategory] = useState("");
@@ -171,12 +170,10 @@ function Dashboard() {
                 // totalPages: 100, // TODO: 預設100頁，reader 讀取後更新
             };
 
-            // 上傳檔案至 Supabase
-            const fileUrl = await uploadToSupabase(newBook, userId);
-            // const fileName = uuidv4() + "-" + file.name;
-            // const { data, error } = await supabase.storage.from("ebooks").upload(fileName, file);
+            // 上傳書籍 metadata 至 API
+            const ok = await uploadToSupabase(newBook, userId);
 
-            if (!fileUrl) {
+            if (!ok) {
                 setLoading(false);
                 toast({
                     title: "上傳失敗",
@@ -188,11 +185,8 @@ function Dashboard() {
                 return;
             }
 
-            // 儲存書籍資料
-            // newBook.file_url = data?.Key;
-
-            // 儲存書籍資料到 IndexedDB
-            await saveBookToIndexedDB(newBook, userId, fileUrl);
+            // 儲存書籍資料到 IndexedDB（含 PDF 內容）
+            await saveBookToIndexedDB(newBook, userId);
 
             // 更新書籍列表
             const updatedBooks = await getAllBooksFromIndexedDB();
@@ -242,8 +236,6 @@ function Dashboard() {
     };
 
     return (
-        <>
-        <NavBar appName="eBook Reader" user={user} onLogout={logout} />
         <Box p={8} bg="gray.100" minH="100vh">
             <Heading as="h1" size="xl" color="brand.600">電子書目錄</Heading>
             {userName && <Text fontSize="xl" color="brand.500" mb={4}>歡迎回來，{userName}！</Text>}
@@ -394,7 +386,6 @@ function Dashboard() {
                 </Box>
             </HStack>
         </Box>
-        </>
     );
 }
 

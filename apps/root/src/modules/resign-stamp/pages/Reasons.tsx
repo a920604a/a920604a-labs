@@ -15,11 +15,10 @@ import { doc, getDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, getFirebaseFirestore } from '@a920604a/auth'
-import { NavBar } from '@a920604a/ui'
 import type { Stamp } from '../components/StampGrid'
 
 export default function Reasons() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const [stamps, setStamps] = useState<Stamp[]>([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState<'index' | 'timestamp'>('timestamp')
@@ -74,9 +73,7 @@ export default function Reasons() {
   }
 
   return (
-    <>
-      <NavBar appName="離職集章" user={user} onLogout={logout} />
-      <Container maxW="4xl" py={8}>
+    <Container maxW="4xl" py={8}>
         <HStack justify="space-between" mb={6}>
           <Heading size="lg" color="brand.600">
             🗒️ 蓋章理由總覽
@@ -134,6 +131,5 @@ export default function Reasons() {
           </VStack>
         )}
       </Container>
-    </>
   )
 }

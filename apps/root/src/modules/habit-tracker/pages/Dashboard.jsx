@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box, Button, Heading, Text } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
 import { useDashboard } from '../hooks/useDashboard';
 import ReminderSettings from '../components/ReminderSettings';
 import HabitForm from '../components/HabitForm';
@@ -8,11 +7,7 @@ import HabitList from '../components/HabitList';
 import CalendarView from '../components/CalendarView';
 import DailyCheckinList from '../components/DailyCheckinList';
 import AchievementBadge from '../components/AchievementBadge';
-import TopBar from "../components/TopBar";
-
-
 function Dashboard() {
-  const navigate = useNavigate();
   const {
     loading,
     loadingUser,
@@ -44,12 +39,6 @@ function Dashboard() {
 
   return (
     <Box maxW="700px" mx="auto" p={5}>
-      
-      <TopBar 
-        backButtonText="查看習慣統計" 
-        onBackClick={() => navigate('/habit-tracker/statistics')} 
-      />
-
       <Heading mb={4}>我的習慣追蹤</Heading>
 
       <HabitForm

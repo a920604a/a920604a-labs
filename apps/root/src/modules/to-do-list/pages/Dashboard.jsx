@@ -14,9 +14,6 @@ import StatsView from '../components/StatsView';
 import CalendarView from '../components/CalendarView';
 import ListView from '../components/ListView';
 import LayoutSwitcher from '../components/LayoutSwitcher';
-import TopBar from "../components/TopBar";
-
-
 import { getAllTodos} from '../utils/firebaseDb';
 import { getFirebaseAuth } from '@a920604a/auth';
 import {  onAuthStateChanged } from 'firebase/auth';
@@ -107,10 +104,6 @@ export default function Dashboard() {
 
   return (
     <Box p={5} maxW="600px" mx="auto">
-      <TopBar 
-        backButtonText="查看習慣統計" 
-        onBackClick={() => navigate('/')} 
-      />
       {userName && (
         <Text fontSize="md" color="gray.600" mb={4}>
           歡迎回來，{userName}！

@@ -1,63 +1,84 @@
-// src/components/StampGrid.tsx
-import React, { useState } from "react";
-import ReasonModal from "./ReasonModal";
+import React, { useState } from 'react'
+import { Box, Grid, Tooltip, useColorModeValue } from '@chakra-ui/react'
+import ReasonModal from './ReasonModal'
 
 export interface Stamp {
-  index: number;
-  reason: string;
-  timestamp: number;
+  index: number
+  reason: string
+  timestamp: number
 }
 
 interface StampGridProps {
-  stamps: Stamp[];
-  maxStamps: number;
-  onStampAdd: (index: number, reason: string) => void;
+  stamps: Stamp[]
+  maxStamps: number
+  onStampAdd: (index: number, reason: string) => void
 }
 
 const StampGrid: React.FC<StampGridProps> = ({ stamps, maxStamps, onStampAdd }) => {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
-  const isStamped = (index: number) => stamps.some(s => s.index === index);
+  const emptyBg    = useColorModeValue('gray.100', 'gray.700')
+  const emptyHover = useColorModeValue('gray.200', 'gray.600')
+  const stampedBg  = useColorModeValue('green.400', 'green.500')
+
+  const isStamped = (index: number) => stamps.some(s => s.index === index)
 
   const handleClick = (index: number) => {
-    if (isStamped(index)) return; // 已蓋章不可重複
-    setActiveIndex(index);
-    setModalOpen(true);
-  };
+    if (isStamped(index)) return
+    setActiveIndex(index)
+    setModalOpen(true)
+  }
 
   const handleSubmit = (reason: string) => {
-    if (activeIndex !== null) {
-      onStampAdd(activeIndex, reason);
-    }
-    const audioUrl = import.meta.env.BASE_URL + "audio/stamp.mp3";
-    const audio = new Audio(audioUrl);
-    audio.play();
-    
-    setModalOpen(false);
-    setActiveIndex(null);
-  };
+    if (activeIndex !== null) onStampAdd(activeIndex, reason)
+    const audio = new Audio(import.meta.env.BASE_URL + 'audio/stamp.mp3')
+    audio.play()
+    setModalOpen(false)
+    setActiveIndex(null)
+  }
 
   return (
     <>
-      <div className="grid grid-cols-10 gap-2 max-w-xl mx-auto mt-6">
+      <Grid templateColumns="repeat(10, 1fr)" gap={2}>
         {[...Array(maxStamps)].map((_, i) => {
-          const index = i + 1;
-          const stamped = isStamped(index);
+          const index  = i + 1
+          const stamped = isStamped(index)
+          const stamp   = stamps.find(s => s.index === index)
+
           return (
-            <button
+            <Tooltip
               key={index}
-              className={`h-10 rounded border flex items-center justify-center text-sm
-                ${stamped ? "bg-green-500 text-white cursor-default" : "bg-gray-200 hover:bg-gray-300"}`}
-              onClick={() => handleClick(index)}
-              disabled={stamped}
-              title={stamped ? "Stamped" : `${index}-th stamp`}
+              label={stamped ? stamp?.reason : `第 ${index} 章`}
+              placement="top"
+              hasArrow
+              openDelay={200}
             >
-              {index}
-            </button>
-          );
+              <Box
+                as="button"
+                h="40px"
+                borderRadius="md"
+                border="1px solid"
+                borderColor={stamped ? 'green.400' : useColorModeValue('gray.200', 'gray.600')}
+                bg={stamped ? stampedBg : emptyBg}
+                color={stamped ? 'white' : useColorModeValue('gray.600', 'gray.300')}
+                fontSize="xs"
+                fontWeight={stamped ? 700 : 400}
+                cursor={stamped ? 'default' : 'pointer'}
+                _hover={stamped ? {} : { bg: emptyHover }}
+                transition="all 0.15s"
+                onClick={() => handleClick(index)}
+                disabled={stamped}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                {stamped ? '🔖' : index}
+              </Box>
+            </Tooltip>
+          )
         })}
-      </div>
+      </Grid>
 
       <ReasonModal
         isOpen={modalOpen}
@@ -65,7 +86,7 @@ const StampGrid: React.FC<StampGridProps> = ({ stamps, maxStamps, onStampAdd }) 
         onSubmit={handleSubmit}
       />
     </>
-  );
-};
+  )
+}
 
-export default StampGrid;
+export default StampGrid

@@ -12,7 +12,6 @@ import * as fontkit from 'fontkit'
 import { useEffect, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth, getFirebaseFirestore } from '@a920604a/auth'
-import { NavBar } from '@a920604a/ui'
 import DailyQuote from '../components/DailyQuote'
 import ProgressSection from '../components/ProgressSection'
 import StampGrid from '../components/StampGrid'
@@ -29,7 +28,7 @@ const ACHIEVEMENTS = [
 ]
 
 export default function Dashboard() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const [stamps, setStamps] = useState<Stamp[]>([])
   const [loading, setLoading] = useState(true)
   const [unlockedAchievements, setUnlockedAchievements] = useState<number[]>([])
@@ -106,9 +105,7 @@ export default function Dashboard() {
   const progress = Number(((stamps.length / MAX_STAMPS) * 100).toFixed(2))
 
   return (
-    <>
-      <NavBar appName="離職集章" user={user} onLogout={logout} />
-      <Container maxW="5xl" py={8}>
+    <Container maxW="5xl" py={8}>
         <Heading size="lg" color="brand.600" mb={6}>
           離職集章
         </Heading>
@@ -125,6 +122,5 @@ export default function Dashboard() {
           查看所有理由列表 →
         </Link>
       </Container>
-    </>
   )
 }
