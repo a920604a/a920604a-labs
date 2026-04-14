@@ -28,13 +28,14 @@ function json(data: unknown, status = 200, cors: HeadersInit = {}): Response {
 
 // ── Auth middleware ───────────────────────────────────────────────────────────
 
-async function authenticate(req: Request, env: Env): Promise<string | Response> {
+async function authenticate(req: Request, env: Env, cors: HeadersInit): Promise<string | Response> {
   const auth = req.headers.get('Authorization')
-  if (!auth?.startsWith('Bearer ')) return new Response('Unauthorized', { status: 401 })
+  if (!auth?.startsWith('Bearer ')) return new Response('Unauthorized', { status: 401, headers: cors })
   try {
     return await verifyFirebaseToken(auth.slice(7), env.FIREBASE_PROJECT_ID)
-  } catch {
-    return new Response('Forbidden', { status: 403 })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Forbidden'
+    return new Response(msg, { status: 403, headers: cors })
   }
 }
 
@@ -53,11 +54,11 @@ export default {
 
     // ── GET /books ─────────────────────────────────────────────────────────
     if (req.method === 'GET' && path === '/books') {
-      const uid = await authenticate(req, env)
+      const uid = await authenticate(req, env, cors)
       if (uid instanceof Response) return uid
 
       const userId = url.searchParams.get('user_id')
-      if (userId !== uid) return new Response('Forbidden', { status: 403 })
+      if (userId !== uid) return new Response('Forbidden', { status: 403, headers: cors })
 
       const { results } = await env.DB.prepare(
         'SELECT id, user_id, name, category, created_at, last_read_time FROM books WHERE user_id = ? ORDER BY created_at DESC'
@@ -69,13 +70,13 @@ export default {
     // ── POST /books ────────────────────────────────────────────────────────
     // Saves metadata only; PDF file is stored locally in the client's IndexedDB.
     if (req.method === 'POST' && path === '/books') {
-      const uid = await authenticate(req, env)
+      const uid = await authenticate(req, env, cors)
       if (uid instanceof Response) return uid
 
       const { id, name, category, user_id } = await req.json() as {
         id: string; name: string; category: string; user_id: string
       }
-      if (user_id !== uid) return new Response('Forbidden', { status: 403 })
+      if (user_id !== uid) return new Response('Forbidden', { status: 403, headers: cors })
 
       await env.DB.prepare(
         'INSERT OR IGNORE INTO books (id, user_id, name, category, file_url) VALUES (?, ?, ?, ?, ?)'
@@ -87,12 +88,12 @@ export default {
     // ── DELETE /books/:id ──────────────────────────────────────────────────
     const deleteBookMatch = path.match(/^\/books\/([^/]+)$/)
     if (req.method === 'DELETE' && deleteBookMatch) {
-      const uid = await authenticate(req, env)
+      const uid = await authenticate(req, env, cors)
       if (uid instanceof Response) return uid
 
       const bookId = deleteBookMatch[1]
       const userId = url.searchParams.get('user_id')
-      if (userId !== uid) return new Response('Forbidden', { status: 403 })
+      if (userId !== uid) return new Response('Forbidden', { status: 403, headers: cors })
 
       await env.DB.prepare('DELETE FROM reading_progress WHERE book_id = ? AND user_id = ?').bind(bookId, uid).run()
       await env.DB.prepare('DELETE FROM books WHERE id = ? AND user_id = ?').bind(bookId, uid).run()
@@ -103,12 +104,12 @@ export default {
     // ── GET /progress/:bookId ──────────────────────────────────────────────
     const progressMatch = path.match(/^\/progress\/([^/]+)$/)
     if (req.method === 'GET' && progressMatch) {
-      const uid = await authenticate(req, env)
+      const uid = await authenticate(req, env, cors)
       if (uid instanceof Response) return uid
 
       const bookId = progressMatch[1]
       const userId = url.searchParams.get('user_id')
-      if (userId !== uid) return new Response('Forbidden', { status: 403 })
+      if (userId !== uid) return new Response('Forbidden', { status: 403, headers: cors })
 
       const row = await env.DB.prepare(
         'SELECT page_number, total_page FROM reading_progress WHERE book_id = ? AND user_id = ?'
@@ -119,14 +120,14 @@ export default {
 
     // ── PUT /progress/:bookId ──────────────────────────────────────────────
     if (req.method === 'PUT' && progressMatch) {
-      const uid = await authenticate(req, env)
+      const uid = await authenticate(req, env, cors)
       if (uid instanceof Response) return uid
 
       const bookId = progressMatch[1]
       const { user_id, page_number, total_page } = await req.json() as {
         user_id: string; page_number: number; total_page: number
       }
-      if (user_id !== uid) return new Response('Forbidden', { status: 403 })
+      if (user_id !== uid) return new Response('Forbidden', { status: 403, headers: cors })
 
       await env.DB.prepare(`
         INSERT INTO reading_progress (book_id, user_id, page_number, total_page, updated_at)
@@ -140,6 +141,6 @@ export default {
       return json({ ok: true }, 200, cors)
     }
 
-    return new Response('Not Found', { status: 404 })
+    return new Response('Not Found', { status: 404, headers: cors })
   },
 }
