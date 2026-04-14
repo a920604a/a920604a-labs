@@ -7,7 +7,6 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
 } from 'firebase/firestore'
 import { getFirebaseFirestore, getFirebaseAuth } from '@a920604a/auth'
 import { v4 as uuidv4 } from 'uuid'
@@ -37,13 +36,15 @@ function defaultDeadline() {
 }
 
 // 取得所有屬於當前使用者的 todos
+// Note: sort client-side to avoid requiring a Firestore composite index (userId + created_at)
 export async function getAllTodos() {
   const userId = getCurrentUserId()
   if (!userId) return []
 
-  const q = query(todosCollection(), where('userId', '==', userId), orderBy('created_at', 'desc'))
+  const q = query(todosCollection(), where('userId', '==', userId))
   const snapshot = await getDocs(q)
-  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+  const todos = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+  return todos.sort((a, b) => (b.created_at ?? 0) - (a.created_at ?? 0))
 }
 
 // 新增 todo

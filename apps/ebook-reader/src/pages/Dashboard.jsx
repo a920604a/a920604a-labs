@@ -52,10 +52,11 @@ export default function Dashboard() {
   const userId = user?.uid ?? null;
 
   // ── Colours ──────────────────────────────────────────────────────────────
-  const cardBg    = useColorModeValue('white',     'gray.800');
-  const border    = useColorModeValue('gray.100',  'gray.700');
-  const labelCl   = useColorModeValue('gray.500',  'gray.400');
-  const emptyBg   = useColorModeValue('gray.50',   'gray.750');
+  const cardBg       = useColorModeValue('white',        'gray.800');
+  const border       = useColorModeValue('gray.100',     'gray.700');
+  const labelCl      = useColorModeValue('gray.500',     'gray.400');
+  const emptyBg      = useColorModeValue('gray.50',      'gray.750');
+  const headingColor = useColorModeValue('purple.500',   'purple.300');
 
   // ── Load books ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -153,7 +154,7 @@ export default function Dashboard() {
         {/* ── Header ──────────────────────────────────────────── */}
         <Flex align="baseline" justify="space-between" flexWrap="wrap" gap={3}>
           <Box>
-            <Heading size="xl" fontWeight={800} color={useColorModeValue('purple.500', 'purple.300')}>
+            <Heading size="xl" fontWeight={800} color={headingColor}>
               📚 電子書閱讀
             </Heading>
             <Text color={labelCl} mt={1} fontSize="sm">

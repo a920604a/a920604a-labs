@@ -11,7 +11,9 @@ export interface Env {
 
 function corsHeaders(origin: string, allowedOrigins: string): HeadersInit {
   const allowed = allowedOrigins.split(',').map((s) => s.trim())
-  const isAllowed = allowed.includes(origin) || allowed.includes('*')
+  // Allow any localhost port for local development (e.g. :5173, :5174, :3000)
+  const isLocalhost = /^https?:\/\/localhost(:\d+)?$/.test(origin)
+  const isAllowed = isLocalhost || allowed.includes(origin) || allowed.includes('*')
   return {
     'Access-Control-Allow-Origin': isAllowed ? origin : allowed[0],
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',

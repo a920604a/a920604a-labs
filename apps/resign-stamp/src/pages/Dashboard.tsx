@@ -81,10 +81,20 @@ export default function Dashboard() {
   const generatePdf = async () => {
     const pdfDoc = await PDFDocument.create()
     pdfDoc.registerFontkit(fontkit)
-    const page = pdfDoc.addPage([600, 750])
+    let page = pdfDoc.addPage([600, 750])
     const { height } = page.getSize()
-    const fontUrl   = import.meta.env.BASE_URL + 'fonts/NotoSansTC-Regular.ttf'
-    const fontBytes = await fetch(fontUrl).then(r => r.arrayBuffer())
+
+    // Fetch Noto Sans TC from jsDelivr CDN (avoids needing a local font file)
+    const FONT_CDN = 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc@5/files/noto-sans-tc-chinese-traditional-400-normal.woff2'
+    let fontBytes: ArrayBuffer
+    try {
+      const res = await fetch(FONT_CDN)
+      if (!res.ok) throw new Error(`Font CDN ${res.status}`)
+      fontBytes = await res.arrayBuffer()
+    } catch (err) {
+      toast({ title: '字體載入失敗，無法匯出 PDF', description: String(err), status: 'error', duration: 4000, isClosable: true })
+      return
+    }
     const customFont = await pdfDoc.embedFont(fontBytes)
 
     page.drawText('離職集章證明報告', { x: 50, y: height - 50,  size: 24, font: customFont, color: rgb(0, 0.53, 0.24) })

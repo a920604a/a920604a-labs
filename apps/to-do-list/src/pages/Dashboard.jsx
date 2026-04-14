@@ -30,7 +30,9 @@ export default function Dashboard() {
     try {
       setLoading(true);
       setTodos(await getAllTodos());
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error('getAllTodos 失敗:', err);
+    }
     finally { setLoading(false); }
   }, []);
 

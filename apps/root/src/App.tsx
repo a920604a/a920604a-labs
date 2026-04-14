@@ -3,22 +3,28 @@ import { useAuth } from '@a920604a/auth'
 import { LoginPage, GlobalShell } from '@a920604a/ui'
 import type { SidebarModule } from '@a920604a/ui'
 import HubPage from './pages/HubPage'
-import ToDoListRoutes from '@a920604a/to-do-list'
+import { features } from './config/features'
+import { MdFormatListBulleted, MdCheckCircleOutline, MdMenuBook, MdStarOutline, MdHome } from 'react-icons/md'
+
+// Lazy-load modules only when the feature is enabled
+import ToDoListRoutes    from '@a920604a/to-do-list'
 import HabitTrackerRoutes from '@a920604a/habit-tracker'
 import EbookReaderRoutes from '@a920604a/ebook-reader'
 import ResignStampRoutes from '@a920604a/resign-stamp'
-import { MdFormatListBulleted, MdCheckCircleOutline, MdMenuBook, MdStarOutline } from 'react-icons/md'
 
 // ── Navigation config ─────────────────────────────────────────────────────────
-// Caller owns the nav config; GlobalShell is a generic shell with no hardcoded routes.
+// Filter out disabled modules so they don't appear in the sidebar.
 
-const MODULES: SidebarModule[] = [
+const ALL_MODULES: Array<SidebarModule & { enabled: boolean }> = [
   {
+    enabled: true,
     path: '/',
     label: '首頁',
+    icon: <MdHome />,
     exact: true,
   },
   {
+    enabled: features.todoList,
     path: '/to-do-list',
     label: '待辦清單',
     icon: <MdFormatListBulleted />,
@@ -27,6 +33,7 @@ const MODULES: SidebarModule[] = [
     ],
   },
   {
+    enabled: features.habitTracker,
     path: '/habit-tracker',
     label: '習慣追蹤',
     icon: <MdCheckCircleOutline />,
@@ -36,6 +43,7 @@ const MODULES: SidebarModule[] = [
     ],
   },
   {
+    enabled: features.ebookReader,
     path: '/ebook-reader',
     label: '電子書',
     icon: <MdMenuBook />,
@@ -44,6 +52,7 @@ const MODULES: SidebarModule[] = [
     ],
   },
   {
+    enabled: features.resignStamp,
     path: '/resign-stamp',
     label: '離職集章',
     icon: <MdStarOutline />,
@@ -53,6 +62,10 @@ const MODULES: SidebarModule[] = [
     ],
   },
 ]
+
+const MODULES: SidebarModule[] = ALL_MODULES
+  .filter(m => m.enabled)
+  .map(({ enabled: _enabled, ...m }) => m)
 
 // ── App ───────────────────────────────────────────────────────────────────────
 
@@ -76,10 +89,10 @@ export default function App() {
       <GlobalShell user={user} onLogout={logout} modules={MODULES} brandName="◈ Labs">
         <Routes>
           <Route path="/" element={<HubPage />} />
-          <Route path="/resign-stamp/*" element={<ResignStampRoutes />} />
-          <Route path="/habit-tracker/*" element={<HabitTrackerRoutes />} />
-          <Route path="/to-do-list/*" element={<ToDoListRoutes />} />
-          <Route path="/ebook-reader/*" element={<EbookReaderRoutes />} />
+          {features.resignStamp  && <Route path="/resign-stamp/*"  element={<ResignStampRoutes />}  />}
+          {features.habitTracker && <Route path="/habit-tracker/*" element={<HabitTrackerRoutes />} />}
+          {features.todoList     && <Route path="/to-do-list/*"    element={<ToDoListRoutes />}     />}
+          {features.ebookReader  && <Route path="/ebook-reader/*"  element={<EbookReaderRoutes />}  />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </GlobalShell>

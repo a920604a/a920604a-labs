@@ -19,6 +19,7 @@ import {
   MdChevronRight,
 } from 'react-icons/md'
 import type { IconType } from 'react-icons'
+import { features } from '../config/features'
 
 // ── Module config ─────────────────────────────────────────────────────────────
 
@@ -27,13 +28,15 @@ interface AppConfig {
   description: string
   path: string
   icon: IconType
-  tint: string          // Chakra color token for icon bg tint
-  iconColor: string     // Chakra color token for icon fill
+  tint: string
+  iconColor: string
   features: string[]
+  enabled: boolean
 }
 
-const APPS: AppConfig[] = [
+const ALL_APPS: AppConfig[] = [
   {
+    enabled: features.todoList,
     name: '待辦清單',
     description: '管理任務、設定截止日期、分類追蹤',
     path: '/to-do-list',
@@ -43,6 +46,7 @@ const APPS: AppConfig[] = [
     features: ['截止日期提醒', '標籤分類', '列表 / 統計 / 日曆'],
   },
   {
+    enabled: features.habitTracker,
     name: '習慣追蹤',
     description: '每日打卡、統計分析、養成好習慣',
     path: '/habit-tracker',
@@ -52,6 +56,7 @@ const APPS: AppConfig[] = [
     features: ['每日打卡', '連續天數統計', '成就徽章'],
   },
   {
+    enabled: features.ebookReader,
     name: '電子書',
     description: '上傳 PDF、記錄進度、管理書庫',
     path: '/ebook-reader',
@@ -61,6 +66,7 @@ const APPS: AppConfig[] = [
     features: ['PDF 閱讀器', '進度自動同步', '分類書庫'],
   },
   {
+    enabled: features.resignStamp,
     name: '離職集章',
     description: '記錄每個想離職的瞬間，蓋章為證',
     path: '/resign-stamp',
@@ -70,6 +76,8 @@ const APPS: AppConfig[] = [
     features: ['100 格集章板', '成就里程碑', '匯出 PDF 報告'],
   },
 ]
+
+const APPS = ALL_APPS.filter(a => a.enabled)
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
