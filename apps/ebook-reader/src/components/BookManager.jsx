@@ -23,8 +23,7 @@ export const getBooksFromSupabase = async (userId) => {
 
 export const uploadToSupabase = async (book, userId) => {
   try {
-    await uploadBookToAPI(book, userId)
-    return true
+    return await uploadBookToAPI(book, userId)  // returns { ok, file_url }
   } catch (err) {
     console.error('上傳書籍失敗:', err)
     return null

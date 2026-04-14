@@ -80,6 +80,20 @@ export async function uploadBookToAPI(
   return result.file_url
 }
 
+/** Fetch PDF from Worker (auth-protected) → returns a local blob URL for the viewer */
+export async function getBookFile(bookId: string): Promise<string> {
+  const token = await getIdToken()
+  const res = await fetch(`${API_URL}/books/${bookId}/file`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    const msg = await res.text()
+    throw new Error(`File fetch failed (${res.status}): ${msg}`)
+  }
+  const blob = await res.blob()
+  return URL.createObjectURL(blob)
+}
+
 export async function deleteBookFromAPI(bookId: string, userId: string): Promise<void> {
   await apiFetch(`/books/${bookId}?user_id=${userId}`, { method: 'DELETE' })
 }

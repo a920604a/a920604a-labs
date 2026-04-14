@@ -20,6 +20,7 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import "@react-pdf-viewer/page-navigation/lib/styles/index.css";
 
 import { saveReadingProgress, getReadingProgress } from "../components/BookManager";
+import { getBookFile } from "../api/ebookApi";
 import { useAuth } from "@a920604a/auth";
 import { openDB } from "../components/IndexedDB";
 
@@ -72,7 +73,10 @@ function ReaderPage() {
 
             try {
                 const book = await getBookById(bookId);
-                setSelectedBook(book);
+
+                // Fetch PDF from R2 via Worker (auth-protected), create local blob URL
+                const blobUrl = await getBookFile(bookId);
+                setSelectedBook({ ...book, file_url: blobUrl });
 
                 // 讀取上次閱讀進度（從 CF Worker API，fallback localStorage）
                 const progress = await getReadingProgress(bookId, uid);
@@ -96,6 +100,15 @@ function ReaderPage() {
 
         initialize();
     }, [bookId, toast]);
+
+    // Revoke blob URL when component unmounts to free memory
+    useEffect(() => {
+        return () => {
+            if (selectedBook?.file_url?.startsWith('blob:')) {
+                URL.revokeObjectURL(selectedBook.file_url);
+            }
+        };
+    }, [selectedBook]);
 
     const isLoading = loading || !selectedBook;
 

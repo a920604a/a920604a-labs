@@ -120,13 +120,13 @@ export default function Dashboard() {
     const reader = new FileReader();
     reader.onload = async (e) => {
       const newBook = { id: uuidv4(), name: file.name, category, data: e.target.result };
-      const ok = await uploadToSupabase(newBook, userId);
-      if (!ok) {
+      const result = await uploadToSupabase(newBook, userId);
+      if (!result) {
         toast({ title: '上傳失敗', status: 'error', duration: 2000, isClosable: true });
         setLoading(false);
         return;
       }
-      await saveBookToIndexedDB(newBook, userId);
+      await saveBookToIndexedDB({ ...newBook, file_url: result.file_url ?? '' }, userId, result.file_url ?? '');
       setBooks(await getAllBooksFromIndexedDB());
       setFile(null); setCategory(''); setLoading(false);
       toast({ title: '上傳成功！', status: 'success', duration: 3000, isClosable: true });
@@ -289,7 +289,7 @@ export default function Dashboard() {
                         borderRadius="lg"
                         leftIcon={<FiBook />}
                         onClick={() => navigate(`/ebook-reader/reader/${book.id}`)}
-                        isDisabled={!book.data}
+                        isDisabled={!book.file_url}
                       >
                         {status === '未閱讀' ? '開始閱讀' : '繼續閱讀'}
                       </Button>

@@ -8,6 +8,10 @@ binding = "DB"
 database_name = "ebook-db"
 database_id = "8251a41e-dcb1-4ebb-bb3c-67222436c6a1"   # replace after: wrangler d1 create ebook-db
 
+[[r2_buckets]]
+binding = "BOOKS_BUCKET"
+bucket_name = "ebook-pdfs"
+
 [vars]
 # Injected at deploy time via: wrangler deploy --var FIREBASE_PROJECT_ID:<value>
 # For local dev: set in .dev.vars file (wrangler dev reads it automatically)
