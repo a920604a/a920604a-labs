@@ -35,6 +35,11 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           VITE_EBOOK_API_URL: ${{ secrets.EBOOK_API_URL }}
+          # Feature flags — omit secret or set to 'false' to disable a module
+          VITE_FEATURE_TODO_LIST: ${{ secrets.VITE_FEATURE_TODO_LIST }}
+          VITE_FEATURE_HABIT_TRACKER: ${{ secrets.VITE_FEATURE_HABIT_TRACKER }}
+          VITE_FEATURE_EBOOK_READER: ${{ secrets.VITE_FEATURE_EBOOK_READER }}
+          VITE_FEATURE_RESIGN_STAMP: ${{ secrets.VITE_FEATURE_RESIGN_STAMP }}
 
       # wrangler 裝在 workers/ebook-api，用 pnpm --filter 執行以確保找得到 binary
       - name: Deploy to Cloudflare Pages
