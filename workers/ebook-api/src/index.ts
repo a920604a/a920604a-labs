@@ -76,7 +76,7 @@ async function handleRequest(req: Request, env: Env, cors: HeadersInit): Promise
       if (userId !== uid) return new Response('Forbidden', { status: 403, headers: cors })
 
       const { results } = await env.DB.prepare(
-        'SELECT id, user_id, name, category, created_at, last_read_time FROM books WHERE user_id = ? ORDER BY created_at DESC'
+        'SELECT id, user_id, name, category, file_url, created_at, last_read_time FROM books WHERE user_id = ? ORDER BY created_at DESC'
       ).bind(uid).all()
 
       return json(results, 200, cors)
