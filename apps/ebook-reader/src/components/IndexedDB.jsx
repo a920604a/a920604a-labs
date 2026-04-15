@@ -31,7 +31,7 @@ export const getAllBooksFromIndexedDB = async () => {
 };
 
 // 儲存書籍 metadata
-export const saveBookToIndexedDB = async (book, userId,  fileUrl = "" ) => {
+export const saveBookToIndexedDB = async (book, userId, fileUrl = "") => {
     const db = await openDB();
     const transaction = db.transaction(["books"], "readwrite");
     const store = transaction.objectStore("books");
@@ -40,19 +40,18 @@ export const saveBookToIndexedDB = async (book, userId,  fileUrl = "" ) => {
         id: book.id,
         name: book.name,
         user_id: userId,
-        // data: book.data, // 這裡保留原始的 data
-        // file_url: fileUrl,
         category: book.category || "",
     };
-    // 如果 fileUrl 存在，則加入 metadata
     if (fileUrl) {
         bookMetadata.file_url = fileUrl;
     }
-    
 
-
-    console.log("Saving book metadata on IndexedDB:", bookMetadata);
-    store.put(bookMetadata);
+    // Await the put so the next getAllBooksFromIndexedDB() sees the new record
+    await new Promise((resolve, reject) => {
+        const req = store.put(bookMetadata);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror  = (e) => reject(e.target.error);
+    });
 
     return bookMetadata.id;
 };

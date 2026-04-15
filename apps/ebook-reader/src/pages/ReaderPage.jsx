@@ -18,9 +18,11 @@ import { getReadingProgress, saveReadingProgress } from "../components/BookManag
 import { useAuth } from "@a920604a/auth";
 import { openDB } from "../components/IndexedDB";
 
-// Worker URL must exactly match the pdfjs-dist version @react-pdf-viewer depends on
+// Worker URL must exactly match the pdfjs-dist version @react-pdf-viewer depends on.
+// Run: node -e "console.log(require('@react-pdf-viewer/core/package.json').peerDependencies['pdfjs-dist'])"
+// to verify when upgrading.
 const PDFJS_WORKER_URL =
-  "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.6.172/build/pdf.worker.min.js";
+  "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 
 // Try IndexedDB first (fast), fall back to API if not cached
 async function getBookMeta(bookId, userId) {
