@@ -47,10 +47,22 @@ async function authenticate(req: Request, env: Env, cors: HeadersInit): Promise<
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const origin = req.headers.get('Origin') ?? ''
-    const cors = corsHeaders(origin, env.ALLOWED_ORIGINS)
+    const cors = corsHeaders(origin, env.ALLOWED_ORIGINS ?? '')
 
     // Preflight
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors })
+
+    try {
+      return await handleRequest(req, env, cors)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Internal Server Error'
+      console.error('Worker unhandled error:', msg)
+      return new Response(msg, { status: 500, headers: cors })
+    }
+  },
+}
+
+async function handleRequest(req: Request, env: Env, cors: HeadersInit): Promise<Response> {
 
     const url = new URL(req.url)
     const path = url.pathname
@@ -81,9 +93,11 @@ export default {
       }
       if (user_id !== uid) return new Response('Forbidden', { status: 403, headers: cors })
 
-      // base64 data URL → binary
+      // base64 data URL → binary (plain loop is faster than Uint8Array.from + callback)
       const base64 = data.replace(/^data:.+;base64,/, '')
-      const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0))
+      const binaryStr = atob(base64)
+      const binary = new Uint8Array(binaryStr.length)
+      for (let i = 0; i < binaryStr.length; i++) binary[i] = binaryStr.charCodeAt(i)
       const r2Key = `${uid}/${id}.pdf`
 
       await env.BOOKS_BUCKET.put(r2Key, binary, {
@@ -186,5 +200,4 @@ export default {
     }
 
     return new Response('Not Found', { status: 404, headers: cors })
-  },
 }
