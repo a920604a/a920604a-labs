@@ -1,4 +1,5 @@
 import { Box, Container, Divider, Heading, Text, useColorModeValue, VStack } from '@chakra-ui/react';
+import { EmptyState } from '@a920604a/ui'
 import { useDashboard } from '../hooks/useDashboard';
 import ReminderSettings  from '../components/ReminderSettings';
 import HabitForm         from '../components/HabitForm';
@@ -27,7 +28,7 @@ export default function Dashboard() {
   if (!userId)     return <Text p={8} color={subText}>請先登入</Text>;
 
   return (
-    <Container maxW="2xl" py={8} px={{ base: 4, md: 8 }}>
+    <Container maxW="4xl" py={8} px={{ base: 4, md: 8 }}>
       <VStack spacing={5} align="stretch">
 
         {/* ── Header ──────────────────────────────────────────── */}
@@ -54,16 +55,24 @@ export default function Dashboard() {
         <ReminderSettings />
 
         {/* ── Habit list ──────────────────────────────────────── */}
-        <HabitList
-          habits={habits}
-          selectedHabitId={selectedHabitId}
-          setSelectedHabitId={setSelectedHabitId}
-          selectedDate={formatDateLocal(selectedDate)}
-          isCheckedIn={(h) => h.records.includes(formatDateLocal(selectedDate))}
-          onCheckIn={handleCheckIn}
-          loading={loading}
-          onHabitDeleted={handleHabitDeleted}
-        />
+        {habits.length === 0 && !loading ? (
+          <EmptyState
+            icon="✅"
+            title="尚未建立任何習慣"
+            description="新增你的第一個習慣，每日打卡養成好習慣！"
+          />
+        ) : (
+          <HabitList
+            habits={habits}
+            selectedHabitId={selectedHabitId}
+            setSelectedHabitId={setSelectedHabitId}
+            selectedDate={formatDateLocal(selectedDate)}
+            isCheckedIn={(h) => h.records.includes(formatDateLocal(selectedDate))}
+            onCheckIn={handleCheckIn}
+            loading={loading}
+            onHabitDeleted={handleHabitDeleted}
+          />
+        )}
 
         {/* ── Calendar ────────────────────────────────────────── */}
         <Box>

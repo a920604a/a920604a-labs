@@ -55,7 +55,7 @@ function HabitCalendar() {
   if (!habit) return <Text>找不到該習慣</Text>;
 
   return (
-    <Box p={6} maxW="600px" mx="auto" boxShadow="md" borderRadius="md" bg="gray.50">
+    <Box p={6} maxW="896px" mx="auto" boxShadow="md" borderRadius="md" bg="gray.50">
       <Button
         size="sm"
         variant="ghost"

@@ -4,6 +4,7 @@ import { LoginPage, GlobalShell } from '@a920604a/ui'
 import type { SidebarModule } from '@a920604a/ui'
 import HubPage from './pages/HubPage'
 import { features } from './config/features'
+import { DailySummary } from './components/DailySummary'
 import { MdFormatListBulleted, MdCheckCircleOutline, MdMenuBook, MdStarOutline, MdHome } from 'react-icons/md'
 
 // Lazy-load modules only when the feature is enabled
@@ -86,7 +87,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <GlobalShell user={user} onLogout={logout} modules={MODULES} brandName="◈ Labs">
+      <GlobalShell user={user} onLogout={logout} modules={MODULES} brandName="◈ Labs" insightsPanel={<DailySummary />}>
         <Routes>
           <Route path="/" element={<HubPage />} />
           {features.resignStamp  && <Route path="/resign-stamp/*"  element={<ResignStampRoutes />}  />}
