@@ -1,2 +1,5 @@
 export * from './components'
 export { theme } from './theme'
+export { ThemeProvider, useAppTheme } from './ThemeProvider'
+export { THEME_META, THEME_ORDER } from './theme/themes'
+export type { ThemeKey } from './theme/themes'
