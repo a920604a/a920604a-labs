@@ -1,5 +1,4 @@
-// packages/ui/src/ThemeProvider.tsx
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useState, useEffect, type ReactNode } from 'react'
 import { ChakraProvider, useColorMode } from '@chakra-ui/react'
 import { THEMES, THEME_META, THEME_ORDER } from './theme/themes'
 
@@ -19,7 +18,6 @@ export function useAppTheme() {
   return useContext(ThemeContext)
 }
 
-// Syncs Chakra colorMode to the selected theme's target mode
 function ColorModeSync({ targetMode }: { targetMode: 'light' | 'dark' }) {
   const { setColorMode } = useColorMode()
   useEffect(() => {
@@ -29,17 +27,20 @@ function ColorModeSync({ targetMode }: { targetMode: 'light' | 'dark' }) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeName, setThemeName] = useState<ThemeName>(
-    () => (localStorage.getItem('app-theme') as ThemeName) ?? 'light'
-  )
+  const [themeName, setThemeName] = useState<ThemeName>(() => {
+    const stored = localStorage.getItem('app-theme')
+    return (THEME_ORDER as readonly string[]).includes(stored ?? '')
+      ? (stored as ThemeName)
+      : 'light'
+  })
 
   const selectedTheme = THEMES[themeName] ?? THEMES.light
   const targetMode = THEME_META[themeName]?.mode ?? 'light'
 
-  const setTheme = (name: ThemeName) => {
+  const setTheme = useCallback((name: ThemeName) => {
     localStorage.setItem('app-theme', name)
     setThemeName(name)
-  }
+  }, [])
 
   return (
     <ThemeContext.Provider value={{ themeName, setTheme }}>
