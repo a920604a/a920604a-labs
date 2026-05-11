@@ -10,7 +10,7 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  themeName: 'light',
+  themeName: 'apple-light',
   setTheme: () => {},
 })
 
@@ -31,10 +31,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem('app-theme')
     return (THEME_ORDER as readonly string[]).includes(stored ?? '')
       ? (stored as ThemeName)
-      : 'light'
+      : 'apple-light'
   })
 
-  const selectedTheme = THEMES[themeName] ?? THEMES.light
+  const selectedTheme = THEMES[themeName] ?? THEMES['apple-light']
   const targetMode = THEME_META[themeName]?.mode ?? 'light'
 
   const setTheme = useCallback((name: ThemeName) => {

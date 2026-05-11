@@ -1,7 +1,6 @@
-// packages/ui/src/theme/themes.ts
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
 
-export const THEME_ORDER = ['light', 'dark', 'ocean', 'rose', 'forest', 'mono'] as const
+export const THEME_ORDER = ['apple-dark', 'apple-light', 'warm', 'nord', 'catppuccin', 'tokyo'] as const
 export type ThemeKey = typeof THEME_ORDER[number]
 
 const fonts = {
@@ -21,62 +20,103 @@ function makeTheme(
 }
 
 export const THEMES: Record<ThemeKey, ReturnType<typeof extendTheme>> = {
-  light: makeTheme('light', {
+  'apple-dark': makeTheme('dark', {
     colors: {
-      brand: { 50:'#e8f4fd',100:'#bee3f8',200:'#90cdf4',300:'#63b3ed',400:'#4299e1',500:'#3182ce',600:'#2b6cb0',700:'#2c5282',800:'#2a4365',900:'#1A365D' },
-    },
-    components: { Button: { defaultProps: { colorScheme: 'brand' } } },
-  }),
-  dark: makeTheme('dark', {
-    colors: {
-      brand: { 50:'#e8f4fd',100:'#bee3f8',200:'#90cdf4',300:'#63b3ed',400:'#4299e1',500:'#3182ce',600:'#2b6cb0',700:'#2c5282',800:'#2a4365',900:'#1A365D' },
-    },
-    components: { Button: { defaultProps: { colorScheme: 'brand' } } },
-  }),
-  ocean: makeTheme('dark', {
-    colors: {
-      brand: { 50:'#e0f7ff',100:'#bae6fd',200:'#7dd3fc',300:'#38bdf8',400:'#0ea5e9',500:'#0284c7',600:'#0369a1',700:'#075985',800:'#0c4a6e',900:'#082f49' },
-      gray: { 50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#94a3b8',600:'#475569',700:'#1e3a5f',800:'#0f2744',900:'#0c1a2e',950:'#060e1a' },
+      brand: {
+        50: '#e5f2ff', 100: '#b3d9ff', 200: '#80bfff', 300: '#4da6ff', 400: '#1a8cff',
+        500: '#0a84ff', 600: '#0066cc', 700: '#004d99', 800: '#003366', 900: '#001a33',
+      },
     },
     semanticTokens: {
       colors: {
-        'chakra-body-bg': { _dark: '#0a1628' },
-        'chakra-subtle-bg': { _dark: '#0c1a2e' },
-        'chakra-border-color': { _dark: '#1e3a5f' },
+        'chakra-body-bg':      { _dark: '#000000' },
+        'chakra-subtle-bg':    { _dark: '#1c1c1e' },
+        'chakra-border-color': { _dark: 'rgba(84,84,88,0.65)' },
       },
     },
     components: { Button: { defaultProps: { colorScheme: 'brand' } } },
   }),
-  rose: makeTheme('light', {
+
+  'apple-light': makeTheme('light', {
     colors: {
-      brand: { 50:'#fff1f2',100:'#ffe4e6',200:'#fecdd3',300:'#fda4af',400:'#fb7185',500:'#f43f5e',600:'#e11d48',700:'#be123c',800:'#9f1239',900:'#881337' },
-    },
-    components: { Button: { defaultProps: { colorScheme: 'brand' } } },
-  }),
-  forest: makeTheme('dark', {
-    colors: {
-      brand: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d' },
-      gray: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#6b7280',600:'#374151',700:'#1f3a2a',800:'#14291d',900:'#0f3d22',950:'#071a0f' },
+      brand: {
+        50: '#e5f0ff', 100: '#cce1ff', 200: '#99c3ff', 300: '#66a4ff', 400: '#3386ff',
+        500: '#007aff', 600: '#005ecc', 700: '#004799', 800: '#002f66', 900: '#001833',
+      },
     },
     semanticTokens: {
       colors: {
-        'chakra-body-bg': { _dark: '#071a0f' },
-        'chakra-subtle-bg': { _dark: '#0f3d22' },
-        'chakra-border-color': { _dark: '#1f3a2a' },
+        'chakra-body-bg':      { _light: '#f5f5f7' },
+        'chakra-subtle-bg':    { _light: '#ffffff' },
+        'chakra-border-color': { _light: 'rgba(60,60,67,0.18)' },
       },
     },
     components: { Button: { defaultProps: { colorScheme: 'brand' } } },
   }),
-  mono: makeTheme('dark', {
+
+  'warm': makeTheme('light', {
     colors: {
-      brand: { 50:'#fafafa',100:'#f4f4f5',200:'#e4e4e7',300:'#d4d4d8',400:'#a1a1aa',500:'#71717a',600:'#52525b',700:'#3f3f46',800:'#27272a',900:'#18181b' },
-      gray: { 50:'#fafafa',100:'#f4f4f5',200:'#e4e4e7',300:'#d4d4d8',400:'#a1a1aa',500:'#71717a',600:'#52525b',700:'#3f3f46',800:'#27272a',900:'#18181b',950:'#09090b' },
+      brand: {
+        50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24',
+        500: '#d97706', 600: '#b45309', 700: '#92400e', 800: '#78350f', 900: '#451a03',
+      },
     },
     semanticTokens: {
       colors: {
-        'chakra-body-bg': { _dark: '#09090b' },
-        'chakra-subtle-bg': { _dark: '#18181b' },
-        'chakra-border-color': { _dark: '#27272a' },
+        'chakra-body-bg':      { _light: '#f7f3ea' },
+        'chakra-subtle-bg':    { _light: '#fffaf0' },
+        'chakra-border-color': { _light: 'rgba(92,76,57,0.18)' },
+      },
+    },
+    components: { Button: { defaultProps: { colorScheme: 'brand' } } },
+  }),
+
+  'nord': makeTheme('dark', {
+    colors: {
+      brand: {
+        50: '#f0f9fb', 100: '#d0edf2', 200: '#a8dae5', 300: '#8dcfe0', 400: '#88c0d0',
+        500: '#81a1c1', 600: '#5e81ac', 700: '#4c6f96', 800: '#3a5578', 900: '#2a3f5f',
+      },
+    },
+    semanticTokens: {
+      colors: {
+        'chakra-body-bg':      { _dark: '#2e3440' },
+        'chakra-subtle-bg':    { _dark: '#3b4252' },
+        'chakra-border-color': { _dark: 'rgba(76,86,106,0.8)' },
+      },
+    },
+    components: { Button: { defaultProps: { colorScheme: 'brand' } } },
+  }),
+
+  'catppuccin': makeTheme('dark', {
+    colors: {
+      brand: {
+        50: '#eef4fe', 100: '#d5e7fc', 200: '#b9d5fb', 300: '#9dc4fa', 400: '#89b4fa',
+        500: '#74a3f9', 600: '#5e8ef8', 700: '#4878f7', 800: '#2859f6', 900: '#1845d0',
+      },
+    },
+    semanticTokens: {
+      colors: {
+        'chakra-body-bg':      { _dark: '#1e1e2e' },
+        'chakra-subtle-bg':    { _dark: '#313244' },
+        'chakra-border-color': { _dark: 'rgba(69,71,90,0.9)' },
+      },
+    },
+    components: { Button: { defaultProps: { colorScheme: 'brand' } } },
+  }),
+
+  'tokyo': makeTheme('dark', {
+    colors: {
+      brand: {
+        50: '#eef3fe', 100: '#d4e3fd', 200: '#b8d0fc', 300: '#9cbcfb', 400: '#7aa2f7',
+        500: '#5e8cf5', 600: '#4172f3', 700: '#2659f1', 800: '#1344dd', 900: '#0f33b8',
+      },
+    },
+    semanticTokens: {
+      colors: {
+        'chakra-body-bg':      { _dark: '#1a1b2e' },
+        'chakra-subtle-bg':    { _dark: '#24253a' },
+        'chakra-border-color': { _dark: 'rgba(65,72,104,0.8)' },
       },
     },
     components: { Button: { defaultProps: { colorScheme: 'brand' } } },
@@ -84,10 +124,10 @@ export const THEMES: Record<ThemeKey, ReturnType<typeof extendTheme>> = {
 }
 
 export const THEME_META: Record<ThemeKey, { label: string; swatch: string; mode: 'light' | 'dark' }> = {
-  light:  { label: 'Light',  swatch: '#3182ce', mode: 'light' },
-  dark:   { label: 'Dark',   swatch: '#4a5568', mode: 'dark'  },
-  ocean:  { label: 'Ocean',  swatch: '#0284c7', mode: 'dark'  },
-  rose:   { label: 'Rose',   swatch: '#e11d48', mode: 'light' },
-  forest: { label: 'Forest', swatch: '#16a34a', mode: 'dark'  },
-  mono:   { label: 'Mono',   swatch: '#52525b', mode: 'dark'  },
+  'apple-dark':  { label: 'Apple Dark',  swatch: '#0a84ff', mode: 'dark'  },
+  'apple-light': { label: 'Apple Light', swatch: '#007aff', mode: 'light' },
+  'warm':        { label: 'Warm Read',   swatch: '#d97706', mode: 'light' },
+  'nord':        { label: 'Nord',        swatch: '#88c0d0', mode: 'dark'  },
+  'catppuccin':  { label: 'Catppuccin',  swatch: '#89b4fa', mode: 'dark'  },
+  'tokyo':       { label: 'Tokyo Night', swatch: '#7aa2f7', mode: 'dark'  },
 }
