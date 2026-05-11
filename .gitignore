@@ -9,3 +9,4 @@ build
 !.env.sample
 .dev.vars
 .wrangler/
+*.tsbuildinfo
