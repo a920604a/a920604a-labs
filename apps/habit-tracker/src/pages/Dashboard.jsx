@@ -27,7 +27,7 @@ export default function Dashboard() {
   if (!userId)     return <Text p={8} color={subText}>請先登入</Text>;
 
   return (
-    <Container maxW="2xl" py={8} px={{ base: 4, md: 8 }}>
+    <Container maxW="4xl" py={8} px={{ base: 4, md: 8 }}>
       <VStack spacing={5} align="stretch">
 
         {/* ── Header ──────────────────────────────────────────── */}

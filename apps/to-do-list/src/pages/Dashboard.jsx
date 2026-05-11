@@ -66,7 +66,7 @@ export default function Dashboard() {
   }
 
   return (
-    <Container maxW="2xl" py={8} px={{ base: 4, md: 8 }}>
+    <Container maxW="4xl" py={8} px={{ base: 4, md: 8 }}>
       <VStack spacing={6} align="stretch">
 
         {/* ── Header ──────────────────────────────────────────── */}
