@@ -21,7 +21,7 @@ import {
   useColorModeValue,
   useDisclosure,
 } from '@chakra-ui/react'
-import { HamburgerIcon } from '@chakra-ui/icons'
+import { CheckIcon, HamburgerIcon } from '@chakra-ui/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useState, type ReactNode } from 'react'
 import { useAppTheme } from '../ThemeProvider'
@@ -243,7 +243,64 @@ export function GlobalShell({
           <Box as="span" display={{ base: 'none', md: 'inline' }}>{pageTitle}</Box>
         </Text>
         <Box flex={1} display={{ base: 'none', md: 'block' }} />
-        <HStack spacing={1} flexShrink={0}>
+        <HStack spacing={2} flexShrink={0}>
+          {/* Theme picker */}
+          <Menu>
+            <MenuButton
+              as={Box}
+              cursor="pointer"
+              display="flex"
+              alignItems="center"
+              gap="6px"
+              px={2}
+              py={1}
+              borderRadius="md"
+              _hover={{ bg: hoverBg }}
+              transition="background 0.12s"
+              aria-label="切換主題"
+            >
+              <Box
+                w="12px" h="12px"
+                borderRadius="full"
+                bg={THEME_META[themeName].swatch}
+                flexShrink={0}
+                display="inline-block"
+              />
+              <Text fontSize="xs" fontWeight={500} color={mutedColor} display="inline">
+                主題
+              </Text>
+            </MenuButton>
+            <MenuList minW="140px" shadow="lg" borderRadius="xl" zIndex={200}>
+              {THEME_ORDER.map(name => {
+                const meta = THEME_META[name]
+                const active = themeName === name
+                return (
+                  <MenuItem
+                    key={name}
+                    onClick={() => setTheme(name)}
+                    fontSize="sm"
+                    fontWeight={active ? 700 : 400}
+                    color={active ? labelColor : mutedColor}
+                    borderRadius="md"
+                    icon={
+                      <Box
+                        w="14px" h="14px"
+                        borderRadius="full"
+                        bg={meta.swatch}
+                        flexShrink={0}
+                      />
+                    }
+                  >
+                    <Flex align="center" justify="space-between" w="full">
+                      <Text>{meta.label}</Text>
+                      {active && <CheckIcon boxSize="10px" color={meta.swatch} />}
+                    </Flex>
+                  </MenuItem>
+                )
+              })}
+            </MenuList>
+          </Menu>
+
           <Menu>
             <MenuButton>
               <Avatar
@@ -259,41 +316,7 @@ export function GlobalShell({
                 <Text fontSize="xs" color={mutedColor} noOfLines={1}>{user?.email}</Text>
               </Box>
               <MenuDivider />
-              {/* Theme picker */}
-              <Box px={3} pb={2}>
-                <Text fontSize="10px" fontWeight={600} color={mutedColor}
-                  textTransform="uppercase" letterSpacing="wider" mb={2}>
-                  主題
-                </Text>
-                <HStack spacing={2} flexWrap="wrap">
-                  {THEME_ORDER.map(name => {
-                    const meta = THEME_META[name]
-                    const active = themeName === name
-                    return (
-                      <Tooltip key={name} label={meta.label} openDelay={300}>
-                        <Box
-                          as="button"
-                          w="20px" h="20px"
-                          borderRadius="full"
-                          bg={meta.swatch}
-                          border="2px solid"
-                          borderColor={active ? labelColor : 'transparent'}
-                          outline={active ? '1px solid' : 'none'}
-                          outlineColor={active ? meta.swatch : 'transparent'}
-                          outlineOffset="2px"
-                          cursor="pointer"
-                          onClick={() => setTheme(name)}
-                          transition="transform 0.1s"
-                          _hover={{ transform: 'scale(1.15)' }}
-                          aria-label={`切換至 ${meta.label} 主題`}
-                          aria-pressed={active}
-                        />
-                      </Tooltip>
-                    )
-                  })}
-                </HStack>
-              </Box>
-              <MenuDivider />
+
               <MenuItem onClick={onLogout} color="red.500" fontSize="sm" borderRadius="md">
                 登出
               </MenuItem>
