@@ -90,7 +90,7 @@ export function GlobalShell({
     localStorage.setItem('sidebar-collapsed', next ? '1' : '0')
   }
 
-  const topbarBg       = useColorModeValue('rgba(255,255,255,0.88)', 'rgba(26,32,44,0.90)')
+  const topbarBg       = THEME_META[themeName].topbarBg
   const sidebarBg      = useColorModeValue('gray.50',  'gray.900')
   const borderColor    = useColorModeValue('gray.200', 'gray.700')
   const pageBg         = useColorModeValue('white',    'gray.900')
