@@ -1,7 +1,6 @@
 import {
   Badge,
   Box,
-  Center,
   Checkbox,
   Divider,
   Flex,
@@ -12,6 +11,7 @@ import {
   VStack,
   useColorModeValue,
 } from '@chakra-ui/react';
+import { EmptyState } from '@a920604a/ui'
 import { FiEdit2, FiTrash2, FiClock, FiCalendar, FiEye } from 'react-icons/fi';
 
 const TAG_SCHEME = { 工作: 'red', 學習: 'teal', 個人: 'blue', 其他: 'gray' };
@@ -36,7 +36,6 @@ export default function TodoList({ todos, onToggle, onDelete, onEdit, onView, fi
   const cardBg     = useColorModeValue('white',    'gray.800');
   const cardBorder = useColorModeValue('gray.100', 'gray.700');
   const metaColor  = useColorModeValue('gray.400', 'gray.500');
-  const emptyColor = useColorModeValue('gray.400', 'gray.500');
 
   const handleBoxClick = (e, todo) => {
     if (e.target.closest('button') || e.target.closest('input') || e.target.closest('label') || e.target.closest('svg'))
@@ -46,12 +45,11 @@ export default function TodoList({ todos, onToggle, onDelete, onEdit, onView, fi
 
   if (todos.length === 0) {
     return (
-      <Center py={14}>
-        <VStack spacing={3}>
-          <Text fontSize="5xl">📋</Text>
-          <Text color={emptyColor} fontSize="md">沒有待辦事項</Text>
-        </VStack>
-      </Center>
+      <EmptyState
+        icon="📋"
+        title="沒有待辦事項"
+        description="新增你的第一個任務，開始高效管理每一天！"
+      />
     );
   }
 
