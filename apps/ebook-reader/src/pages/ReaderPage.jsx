@@ -67,7 +67,7 @@ export default function ReaderPage() {
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
   const pageNavPluginInstance       = pageNavigationPlugin();
-  const { jumpToPage }              = pageNavPluginInstance;
+  const { jumpToPage, jumpToNextPage, jumpToPreviousPage } = pageNavPluginInstance;
 
   const userId = user?.uid;
 
@@ -104,6 +104,16 @@ export default function ReaderPage() {
       .catch((err) => setError(`PDF 下載失敗：${err.message}`))
       .finally(() => setLoadingFile(false));
   }, [bookId, userId]);
+
+  // ── Keyboard navigation ───────────────────────────────────────────────────
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'ArrowLeft')  jumpToPreviousPage();
+      if (e.key === 'ArrowRight') jumpToNextPage();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [jumpToNextPage, jumpToPreviousPage]);
 
   // ── Revoke blob URL on unmount ────────────────────────────────────────────
   useEffect(() => {
