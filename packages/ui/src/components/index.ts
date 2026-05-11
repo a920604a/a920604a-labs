@@ -8,3 +8,5 @@ export type {
   SidebarModule,
   SidebarSubItem,
 } from './GlobalShell'
+export { EmptyState } from './EmptyState'
+export type { EmptyStateProps } from './EmptyState'
