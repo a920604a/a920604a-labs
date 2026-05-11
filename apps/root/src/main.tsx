@@ -1,8 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { ChakraProvider } from '@chakra-ui/react'
 import { AuthProvider, initFirebase } from '@a920604a/auth'
-import { theme } from '@a920604a/ui/theme'
+import { ThemeProvider } from '@a920604a/ui'
 import App from './App'
 
 initFirebase({
@@ -16,10 +15,10 @@ initFirebase({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ChakraProvider theme={theme}>
+    <ThemeProvider>
       <AuthProvider>
         <App />
       </AuthProvider>
-    </ChakraProvider>
+    </ThemeProvider>
   </React.StrictMode>
 )
