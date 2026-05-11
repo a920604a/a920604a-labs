@@ -1,6 +1,9 @@
 // packages/ui/src/theme/themes.ts
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
 
+export const THEME_ORDER = ['light', 'dark', 'ocean', 'rose', 'forest', 'mono'] as const
+export type ThemeKey = typeof THEME_ORDER[number]
+
 const fonts = {
   heading: `'Noto Sans TC', 'Inter', sans-serif`,
   body: `'Noto Sans TC', 'Inter', sans-serif`,
@@ -8,7 +11,7 @@ const fonts = {
 
 function makeTheme(
   colorMode: 'light' | 'dark',
-  overrides: Record<string, unknown> = {}
+  overrides: Parameters<typeof extendTheme>[0] = {}
 ) {
   const config: ThemeConfig = {
     initialColorMode: colorMode,
@@ -17,7 +20,7 @@ function makeTheme(
   return extendTheme({ config, fonts, ...overrides })
 }
 
-export const THEMES: Record<string, ReturnType<typeof extendTheme>> = {
+export const THEMES: Record<ThemeKey, ReturnType<typeof extendTheme>> = {
   light: makeTheme('light', {
     colors: {
       brand: { 50:'#e8f4fd',100:'#bee3f8',200:'#90cdf4',300:'#63b3ed',400:'#4299e1',500:'#3182ce',600:'#2b6cb0',700:'#2c5282',800:'#2a4365',900:'#1A365D' },
@@ -80,7 +83,7 @@ export const THEMES: Record<string, ReturnType<typeof extendTheme>> = {
   }),
 }
 
-export const THEME_META: Record<string, { label: string; swatch: string; mode: 'light' | 'dark' }> = {
+export const THEME_META: Record<ThemeKey, { label: string; swatch: string; mode: 'light' | 'dark' }> = {
   light:  { label: 'Light',  swatch: '#3182ce', mode: 'light' },
   dark:   { label: 'Dark',   swatch: '#4a5568', mode: 'dark'  },
   ocean:  { label: 'Ocean',  swatch: '#0284c7', mode: 'dark'  },
@@ -88,5 +91,3 @@ export const THEME_META: Record<string, { label: string; swatch: string; mode: '
   forest: { label: 'Forest', swatch: '#16a34a', mode: 'dark'  },
   mono:   { label: 'Mono',   swatch: '#52525b', mode: 'dark'  },
 }
-
-export const THEME_ORDER = ['light', 'dark', 'ocean', 'rose', 'forest', 'mono'] as const
