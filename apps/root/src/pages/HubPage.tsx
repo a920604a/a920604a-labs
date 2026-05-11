@@ -81,7 +81,7 @@ function ModuleCard({ app, stat }: { app: AppConfig; stat: ModuleStat }) {
       minH="120px"
       display="flex"
       flexDirection="column"
-      justify="space-between"
+      justifyContent="space-between"
     >
       <Flex justify="space-between" align="flex-start">
         <Icon as={app.icon} boxSize={6} opacity={0.9} />
