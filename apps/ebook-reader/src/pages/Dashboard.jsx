@@ -72,8 +72,12 @@ export default function Dashboard() {
         getBooksFromSupabase(userId),
       ]);
       const missing = apiBooks.filter(ab => !localBooks.some(lb => lb.id === ab.id));
-      for (const b of missing) await saveBookToIndexedDB(b, userId);
-      const all = [...localBooks, ...missing];
+      for (const b of missing) await saveBookToIndexedDB(b, userId, b.file_url ?? '');
+      // Enrich local books that are missing file_url (e.g. stale IndexedDB entries)
+      const apiById = Object.fromEntries(apiBooks.map(b => [b.id, b]));
+      const all = [...localBooks.map(lb =>
+        lb.file_url ? lb : { ...lb, file_url: apiById[lb.id]?.file_url ?? '' }
+      ), ...missing];
       for (const b of all) {
         const p = await getReadingProgress(b.id, userId);
         b.lastPage   = p.page_number || 0;
@@ -127,7 +131,7 @@ export default function Dashboard() {
         setLoading(false);
         return;
       }
-      await saveBookToIndexedDB({ ...newBook, file_url: result.file_url ?? '' }, userId, result.file_url ?? '');
+      await saveBookToIndexedDB({ ...newBook, file_url: result }, userId, result);
       setBooks(await getAllBooksFromIndexedDB());
       setFile(null); setCategory(''); setLoading(false);
       toast({ title: '上傳成功！', status: 'success', duration: 3000, isClosable: true });
