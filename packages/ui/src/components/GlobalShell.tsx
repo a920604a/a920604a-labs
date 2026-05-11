@@ -18,13 +18,14 @@ import {
   Text,
   Tooltip,
   VStack,
-  useColorMode,
   useColorModeValue,
   useDisclosure,
 } from '@chakra-ui/react'
-import { HamburgerIcon, MoonIcon, SunIcon } from '@chakra-ui/icons'
+import { HamburgerIcon } from '@chakra-ui/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { useAppTheme } from '../ThemeProvider'
+import { THEME_META, THEME_ORDER } from '../theme/themes'
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
@@ -34,15 +35,10 @@ export interface SidebarSubItem {
 }
 
 export interface SidebarModule {
-  /** Route path prefix, e.g. '/habit-tracker'. Use '/' for the home item. */
   path: string
-  /** Display label shown in the sidebar */
   label: string
-  /** Optional icon node (e.g. from react-icons or @chakra-ui/icons) */
   icon?: ReactNode
-  /** Sub-pages shown indented below this module when it is active */
   subItems?: SidebarSubItem[]
-  /** If true, path must match exactly (for the Home item) */
   exact?: boolean
 }
 
@@ -55,19 +51,18 @@ export interface GlobalShellUser {
 export interface GlobalShellProps {
   user: GlobalShellUser | null
   onLogout: () => void
-  /** All module items — the caller owns the nav config */
   modules: SidebarModule[]
-  /** Brand name shown at the top of the sidebar */
   brandName?: string
-  /** Optional custom logo node to replace the brand text */
   brandLogo?: ReactNode
+  insightsPanel?: ReactNode
   children: ReactNode
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const TOPBAR_H = '56px'
-const SIDEBAR_W = '240px'
+const TOPBAR_H    = '56px'
+const SIDEBAR_W   = '240px'
+const SIDEBAR_W_C = '52px'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -77,14 +72,24 @@ export function GlobalShell({
   modules,
   brandName = 'Labs',
   brandLogo,
+  insightsPanel,
   children,
 }: GlobalShellProps) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const { colorMode, toggleColorMode } = useColorMode()
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const { themeName, setTheme } = useAppTheme()
 
-  // ── Theme tokens — ALL hooks called at top level, never inside loops ────────
+  const [collapsed, setCollapsed] = useState<boolean>(
+    () => localStorage.getItem('sidebar-collapsed') === '1'
+  )
+
+  const toggleCollapsed = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem('sidebar-collapsed', next ? '1' : '0')
+  }
+
   const topbarBg       = useColorModeValue('rgba(255,255,255,0.88)', 'rgba(26,32,44,0.90)')
   const sidebarBg      = useColorModeValue('gray.50',  'gray.900')
   const borderColor    = useColorModeValue('gray.200', 'gray.700')
@@ -96,56 +101,51 @@ export function GlobalShell({
   const mutedColor     = useColorModeValue('gray.500', 'gray.400')
   const labelColor     = useColorModeValue('gray.700', 'gray.200')
   const brandColor     = useColorModeValue('gray.900', 'white')
+  const toggleBtnBg    = useColorModeValue('white',    'gray.800')
 
-  // ── Active helpers ─────────────────────────────────────────────────────────
   const isModuleActive = (m: SidebarModule) =>
     m.exact ? pathname === m.path : pathname.startsWith(m.path)
+  const isSubActive = (path: string) =>
+    pathname === path || pathname.startsWith(path + '/')
 
-  const isSubActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
-
-  // ── Current page label (for topbar title) ─────────────────────────────────
-  const activeModule = modules.find(isModuleActive)
+  const activeModule  = modules.find(isModuleActive)
   const activeSubItem = activeModule?.subItems?.find(s => isSubActive(s.path))
-  const pageTitle = activeSubItem?.label ?? activeModule?.label ?? ''
+  const pageTitle     = activeSubItem?.label ?? activeModule?.label ?? ''
 
-  // ── Nav click: go to first sub-item or module path ─────────────────────────
   const handleModuleClick = (m: SidebarModule) => {
     navigate(m.subItems?.[0]?.path ?? m.path)
   }
 
-  // ── Sidebar nav list ───────────────────────────────────────────────────────
-  // Defined as JSX, not an inner component, to avoid hook ordering issues.
   const sidebarNav = (onNav?: () => void) => (
-    <VStack align="stretch" spacing={0} px={2} pt={2}>
+    <VStack align="stretch" spacing={0} px={collapsed ? 1 : 2} pt={2}>
       {modules.map(m => {
         const active = isModuleActive(m)
-        return (
-          <Box key={m.path}>
-            {/* Module row */}
-            <Flex
-              align="center"
-              gap={2}
-              px={3}
-              py="7px"
-              borderRadius="md"
-              cursor="pointer"
-              bg={active ? activeModuleBg : 'transparent'}
-              _hover={{ bg: active ? activeModuleBg : hoverBg }}
-              transition="background 0.12s"
-              onClick={() => { handleModuleClick(m); onNav?.() }}
-              role="button"
-            >
-              {m.icon && (
-                <Box
-                  flexShrink={0}
-                  color={active ? labelColor : mutedColor}
-                  fontSize="15px"
-                  lineHeight={1}
-                  mt="1px"
-                >
-                  {m.icon}
-                </Box>
-              )}
+        const row = (
+          <Flex
+            align="center"
+            gap={collapsed ? 0 : 2}
+            px={collapsed ? 0 : 3}
+            py="7px"
+            borderRadius="md"
+            cursor="pointer"
+            bg={active ? activeModuleBg : 'transparent'}
+            _hover={{ bg: active ? activeModuleBg : hoverBg }}
+            transition="background 0.12s"
+            onClick={() => { handleModuleClick(m); onNav?.() }}
+            role="button"
+            justify={collapsed ? 'center' : 'flex-start'}
+          >
+            {m.icon && (
+              <Box
+                flexShrink={0}
+                color={active ? labelColor : mutedColor}
+                fontSize="18px"
+                lineHeight={1}
+              >
+                {m.icon}
+              </Box>
+            )}
+            {!collapsed && (
               <Text
                 fontSize="14px"
                 fontWeight={active ? 600 : 400}
@@ -155,10 +155,17 @@ export function GlobalShell({
               >
                 {m.label}
               </Text>
-            </Flex>
+            )}
+          </Flex>
+        )
 
-            {/* Sub-items — shown when module is active and has sub-pages */}
-            {active && m.subItems && m.subItems.length > 0 && (
+        return (
+          <Box key={m.path}>
+            {collapsed
+              ? <Tooltip label={m.label} placement="right" openDelay={100}>{row}</Tooltip>
+              : row
+            }
+            {!collapsed && active && m.subItems && m.subItems.length > 0 && (
               <VStack align="stretch" spacing={0} mt="2px" mb="4px">
                 {m.subItems.map(sub => {
                   const subActive = isSubActive(sub.path)
@@ -197,11 +204,11 @@ export function GlobalShell({
     </VStack>
   )
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const sidebarW = collapsed ? SIDEBAR_W_C : SIDEBAR_W
+
   return (
     <Box minH="100vh" bg={pageBg}>
-
-      {/* ── Top bar ─────────────────────────────────────────────────────────── */}
+      {/* Top bar */}
       <Flex
         as="header"
         position="fixed"
@@ -216,7 +223,6 @@ export function GlobalShell({
         zIndex={100}
         gap={3}
       >
-        {/* Hamburger — mobile only */}
         <IconButton
           aria-label="開啟選單"
           icon={<HamburgerIcon />}
@@ -226,8 +232,6 @@ export function GlobalShell({
           onClick={onOpen}
           flexShrink={0}
         />
-
-        {/* Mobile: brand name; desktop: current page title */}
         <Text
           fontSize="sm"
           fontWeight={600}
@@ -235,29 +239,11 @@ export function GlobalShell({
           noOfLines={1}
           flex={{ base: 1, md: undefined }}
         >
-          <Box as="span" display={{ base: 'inline', md: 'none' }}>
-            {brandLogo ?? brandName}
-          </Box>
-          <Box as="span" display={{ base: 'none', md: 'inline' }}>
-            {pageTitle}
-          </Box>
+          <Box as="span" display={{ base: 'inline', md: 'none' }}>{brandLogo ?? brandName}</Box>
+          <Box as="span" display={{ base: 'none', md: 'inline' }}>{pageTitle}</Box>
         </Text>
-
-        {/* Spacer — desktop */}
         <Box flex={1} display={{ base: 'none', md: 'block' }} />
-
-        {/* Right controls */}
         <HStack spacing={1} flexShrink={0}>
-          <Tooltip label={colorMode === 'light' ? '深色模式' : '淺色模式'} openDelay={500}>
-            <IconButton
-              aria-label="切換主題"
-              icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-              variant="ghost"
-              size="sm"
-              onClick={toggleColorMode}
-            />
-          </Tooltip>
-
           <Menu>
             <MenuButton>
               <Avatar
@@ -267,22 +253,48 @@ export function GlobalShell({
                 cursor="pointer"
               />
             </MenuButton>
-            <MenuList minW="180px" shadow="lg" borderRadius="xl">
+            <MenuList minW="200px" shadow="lg" borderRadius="xl">
               <Box px={3} py={2}>
-                <Text fontSize="sm" fontWeight={600} noOfLines={1}>
-                  {user?.displayName}
-                </Text>
-                <Text fontSize="xs" color={mutedColor} noOfLines={1}>
-                  {user?.email}
-                </Text>
+                <Text fontSize="sm" fontWeight={600} noOfLines={1}>{user?.displayName}</Text>
+                <Text fontSize="xs" color={mutedColor} noOfLines={1}>{user?.email}</Text>
               </Box>
               <MenuDivider />
-              <MenuItem
-                onClick={onLogout}
-                color="red.500"
-                fontSize="sm"
-                borderRadius="md"
-              >
+              {/* Theme picker */}
+              <Box px={3} pb={2}>
+                <Text fontSize="10px" fontWeight={600} color={mutedColor}
+                  textTransform="uppercase" letterSpacing="wider" mb={2}>
+                  主題
+                </Text>
+                <HStack spacing={2} flexWrap="wrap">
+                  {THEME_ORDER.map(name => {
+                    const meta = THEME_META[name]
+                    const active = themeName === name
+                    return (
+                      <Tooltip key={name} label={meta.label} openDelay={300}>
+                        <Box
+                          as="button"
+                          w="20px" h="20px"
+                          borderRadius="full"
+                          bg={meta.swatch}
+                          border="2px solid"
+                          borderColor={active ? labelColor : 'transparent'}
+                          outline={active ? '1px solid' : 'none'}
+                          outlineColor={active ? meta.swatch : 'transparent'}
+                          outlineOffset="2px"
+                          cursor="pointer"
+                          onClick={() => setTheme(name)}
+                          transition="transform 0.1s"
+                          _hover={{ transform: 'scale(1.15)' }}
+                          aria-label={`切換至 ${meta.label} 主題`}
+                          aria-pressed={active}
+                        />
+                      </Tooltip>
+                    )
+                  })}
+                </HStack>
+              </Box>
+              <MenuDivider />
+              <MenuItem onClick={onLogout} color="red.500" fontSize="sm" borderRadius="md">
                 登出
               </MenuItem>
             </MenuList>
@@ -290,19 +302,12 @@ export function GlobalShell({
         </HStack>
       </Flex>
 
-      {/* ── Mobile drawer ───────────────────────────────────────────────────── */}
+      {/* Mobile drawer */}
       <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton top={3} right={3} />
-          <DrawerHeader
-            fontSize="sm"
-            fontWeight={700}
-            color={brandColor}
-            pt={4}
-            pb={3}
-            px={5}
-          >
+          <DrawerHeader fontSize="sm" fontWeight={700} color={brandColor} pt={4} pb={3} px={5}>
             {brandLogo ?? brandName}
           </DrawerHeader>
           <DrawerBody px={2} pt={0} pb={4}>
@@ -311,13 +316,12 @@ export function GlobalShell({
         </DrawerContent>
       </Drawer>
 
-      {/* ── Page layout ─────────────────────────────────────────────────────── */}
+      {/* Page layout */}
       <Flex pt={TOPBAR_H} minH="100vh">
-
-        {/* Desktop sidebar — fixed, always visible */}
+        {/* Desktop sidebar */}
         <Box
           as="nav"
-          w={SIDEBAR_W}
+          w={sidebarW}
           flexShrink={0}
           position="fixed"
           top={TOPBAR_H}
@@ -326,35 +330,76 @@ export function GlobalShell({
           borderRight="1px solid"
           borderColor={borderColor}
           overflowY="auto"
+          overflowX="hidden"
           display={{ base: 'none', md: 'flex' }}
           flexDirection="column"
           pt={3}
           pb={4}
+          transition="width 0.2s ease"
         >
-          {/* Brand */}
-          <Text
-            fontSize="15px"
-            fontWeight={700}
-            color={brandColor}
-            letterSpacing="-0.3px"
-            px={5}
-            mb={3}
-            flexShrink={0}
-            cursor="pointer"
-            onClick={() => navigate('/')}
-          >
-            {brandLogo ?? brandName}
-          </Text>
-
+          {!collapsed && (
+            <Text
+              fontSize="15px"
+              fontWeight={700}
+              color={brandColor}
+              letterSpacing="-0.3px"
+              px={5}
+              mb={3}
+              flexShrink={0}
+              cursor="pointer"
+              onClick={() => navigate('/')}
+              noOfLines={1}
+            >
+              {brandLogo ?? brandName}
+            </Text>
+          )}
           {sidebarNav()}
+          {!collapsed && insightsPanel && (
+            <Box mt="auto" px={2} pt={2} borderTop="1px solid" borderColor={borderColor}>
+              {insightsPanel}
+            </Box>
+          )}
+          {/* Collapse toggle */}
+          <Box
+            position="relative"
+            mt={collapsed ? 'auto' : 2}
+            display="flex"
+            justifyContent="center"
+            pb={2}
+          >
+            <Tooltip label={collapsed ? '展開選單' : '收合選單'} placement="right" openDelay={300}>
+              <Box
+                as="button"
+                w="24px" h="24px"
+                borderRadius="full"
+                bg={toggleBtnBg}
+                border="1px solid"
+                borderColor={borderColor}
+                boxShadow="sm"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                cursor="pointer"
+                onClick={toggleCollapsed}
+                aria-label={collapsed ? '展開選單' : '收合選單'}
+                fontSize="12px"
+                color={mutedColor}
+                _hover={{ bg: hoverBg }}
+                transition="background 0.12s"
+              >
+                {collapsed ? '›' : '‹'}
+              </Box>
+            </Tooltip>
+          </Box>
         </Box>
 
         {/* Main content */}
         <Box
           flex={1}
-          ml={{ base: 0, md: SIDEBAR_W }}
+          ml={{ base: 0, md: sidebarW }}
           minW={0}
           minH="100vh"
+          transition="margin-left 0.2s ease"
         >
           {children}
         </Box>
