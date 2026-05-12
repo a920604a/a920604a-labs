@@ -215,10 +215,11 @@ export default function Dashboard() {
     const COL_PAD = 6
     const contentStartY = titleLineY - 18
 
-    const drawColText = (text: string, x: number) => {
+    const drawColText = (text: unknown, x: number) => {
+      const safeText = typeof text === 'string' && text ? text : '分析資料不足'
       let y = contentStartY
       let line = ''
-      for (const char of text) {
+      for (const char of safeText) {
         line += char
         if (line.length >= CHARS_PER_LINE) {
           if (y < colBottom) break
@@ -240,7 +241,7 @@ export default function Dashboard() {
     page.drawLine({ start: { x: MARGIN, y: 48 }, end: { x: W - MARGIN, y: 48 }, thickness: 0.5, color: sepGray })
     page.drawText('由 Cloudflare Workers AI 生成', { x: MARGIN, y: 32, size: 8, font, color: mid })
 
-    const blob = new Blob([await pdfDoc.save()], { type: 'application/pdf' })
+    const blob = new Blob([(await pdfDoc.save()).buffer as ArrayBuffer], { type: 'application/pdf' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
     link.download = 'resignation_certificate.pdf'

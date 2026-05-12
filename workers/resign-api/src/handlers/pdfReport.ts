@@ -43,6 +43,7 @@ export async function handlePdfReport(
   let parsed: PdfReportResult = { ...DEFAULT }
   try {
     const raw = result.response?.trim() ?? ''
+    console.log('[pdfReport] AI raw response:', raw.slice(0, 300))
     const jsonStr = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim()
     const obj = JSON.parse(jsonStr) as Partial<PdfReportResult>
     parsed = {
@@ -50,8 +51,8 @@ export async function handlePdfReport(
       values: obj.values || DEFAULT.values,
       advice: obj.advice || DEFAULT.advice,
     }
-  } catch {
-    // fallback to DEFAULT
+  } catch (e) {
+    console.log('[pdfReport] JSON parse failed:', e)
   }
 
   return new Response(JSON.stringify(parsed), {
