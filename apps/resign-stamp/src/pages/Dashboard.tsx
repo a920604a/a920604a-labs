@@ -111,7 +111,8 @@ export default function Dashboard() {
         setPdfReport(report)
       }
       await generatePdf(report)
-    } catch {
+    } catch (err) {
+      console.log('[handleExport] failed:', err, 'RESIGN_API_URL:', RESIGN_API_URL)
       toast({ title: 'PDF 分析失敗，請稍後再試', status: 'error', duration: 3000, isClosable: true })
     } finally {
       setGeneratingPdf(false)
