@@ -22,12 +22,15 @@ const SYSTEM = '你是職涯顧問。用繁體中文回答，嚴格限制在60�
 
 function stripMarkdown(text: string): string {
   return text
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')   // emoji (supplementary plane)
+    .replace(/[☀-➿⌀-⏿]/g, '') // misc symbols, dingbats
     .replace(/\*\*(.+?)\*\*/g, '$1')   // **bold**
     .replace(/\*(.+?)\*/g, '$1')        // *italic*
-    .replace(/^[*\-#>\d.]+\s*/gm, '')   // list markers, headings
+    .replace(/^[*\-#>]+\s*/gm, '')      // list markers, headings (not digits)
     .replace(/`(.+?)`/g, '$1')          // inline code
+    .replace(/\n+/g, '，')              // newlines → Chinese comma
     .trim()
-    .slice(0, 120)                       // hard cap
+    .slice(0, 130)
 }
 
 async function ask(env: Env, prompt: string): Promise<string> {
