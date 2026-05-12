@@ -45,8 +45,12 @@ export default function Dashboard() {
   const db = getFirebaseFirestore()
   const userDocRef = doc(db, 'users', user!.uid)
 
-  const cardBg = useColorModeValue('white',    'gray.800')
-  const border = useColorModeValue('gray.100', 'gray.700')
+  const cardBg         = useColorModeValue('white',      'gray.800')
+  const border         = useColorModeValue('gray.100',   'gray.700')
+  const aiCardBg       = useColorModeValue('orange.50',  'orange.900')
+  const aiCardBorder   = useColorModeValue('orange.200', 'orange.700')
+  const aiLabelColor   = useColorModeValue('orange.500', 'orange.300')
+  const aiReportColor  = useColorModeValue('gray.700',   'gray.100')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -231,9 +235,9 @@ export default function Dashboard() {
           {aiReport && (
             <Box
               mt={3}
-              bg={useColorModeValue('orange.50', 'orange.900')}
+              bg={aiCardBg}
               border="1px solid"
-              borderColor={useColorModeValue('orange.200', 'orange.700')}
+              borderColor={aiCardBorder}
               borderLeft="4px solid"
               borderLeftColor="orange.400"
               borderRadius="xl"
@@ -242,12 +246,12 @@ export default function Dashboard() {
             >
               <Flex align="center" gap={2} mb={2}>
                 <Text fontSize="lg">🧠</Text>
-                <Text fontSize="xs" fontWeight={700} color={useColorModeValue('orange.500', 'orange.300')}
+                <Text fontSize="xs" fontWeight={700} color={aiLabelColor}
                   letterSpacing="widest" textTransform="uppercase">
                   AI 離職故事分析
                 </Text>
               </Flex>
-              <Text fontSize="md" color={useColorModeValue('gray.700', 'gray.100')} lineHeight="tall">
+              <Text fontSize="md" color={aiReportColor} lineHeight="tall">
                 {aiReport}
               </Text>
             </Box>

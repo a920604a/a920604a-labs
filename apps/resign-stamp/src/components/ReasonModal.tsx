@@ -87,10 +87,11 @@ export default function ReasonModal({
     }
   }
 
-  const remaining  = MAX_CHARS - reason.length
-  const countColor = remaining < 20 ? 'red.400' : useColorModeValue('gray.400', 'gray.500')
-  const cardBg     = useColorModeValue('orange.50', 'orange.900')
-  const cardBorder = useColorModeValue('orange.200', 'orange.700')
+  const remaining        = MAX_CHARS - reason.length
+  const countColorNormal = useColorModeValue('gray.400', 'gray.500')
+  const countColor       = remaining < 20 ? 'red.400' : countColorNormal
+  const cardBg           = useColorModeValue('orange.50', 'orange.900')
+  const cardBorder       = useColorModeValue('orange.200', 'orange.700')
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} isCentered size="md" motionPreset="scale">
