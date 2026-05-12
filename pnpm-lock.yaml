@@ -527,6 +527,18 @@ importers:
         specifier: ^4.0.0
         version: 4.81.1(@cloudflare/workers-types@4.20260412.1)
 
+  workers/resign-api:
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250409.0
+        version: 4.20260412.1
+      typescript:
+        specifier: ~5.8.3
+        version: 5.8.3
+      wrangler:
+        specifier: ^4.0.0
+        version: 4.81.1(@cloudflare/workers-types@4.20260412.1)
+
 packages:
 
   '@babel/code-frame@7.29.0':
