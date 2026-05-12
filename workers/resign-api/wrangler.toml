@@ -2,6 +2,7 @@ name = "resign-api"
 main = "src/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
+account_id = "a0ce05e1163dc5b1c2520a356c47b319"
 
 [ai]
 binding = "AI"
