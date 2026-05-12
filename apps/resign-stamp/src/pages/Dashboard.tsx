@@ -41,6 +41,8 @@ export default function Dashboard() {
   const [unlockedAchievements, setUnlockedAchievements] = useState<number[]>([])
   const [aiReport, setAiReport]   = useState('')
   const [analyzing, setAnalyzing] = useState(false)
+  const [pdfReport, setPdfReport] = useState<{ causes: string; values: string; advice: string } | null>(null)
+  const [generatingPdf, setGeneratingPdf] = useState(false)
 
   const db = getFirebaseFirestore()
   const userDocRef = doc(db, 'users', user!.uid)
@@ -92,6 +94,30 @@ export default function Dashboard() {
     }
   }
 
+  const handleExport = async () => {
+    setGeneratingPdf(true)
+    try {
+      let report = pdfReport
+      if (!report) {
+        const token = await getAuth().currentUser?.getIdToken()
+        if (!token) throw new Error('no token')
+        const res = await fetch(`${RESIGN_API_URL}/ai/pdf-report`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ stamps, userName: user!.displayName || 'Anonymous' }),
+        })
+        if (!res.ok) throw new Error(`status ${res.status}`)
+        report = await res.json() as { causes: string; values: string; advice: string }
+        setPdfReport(report)
+      }
+      await generatePdf(report)
+    } catch {
+      toast({ title: 'PDF 分析失敗，請稍後再試', status: 'error', duration: 3000, isClosable: true })
+    } finally {
+      setGeneratingPdf(false)
+    }
+  }
+
   // Achievement unlock notifications
   useEffect(() => {
     MILESTONE_COUNTS.forEach(count => {
@@ -109,11 +135,10 @@ export default function Dashboard() {
     })
   }, [stamps, unlockedAchievements])
 
-  const generatePdf = async () => {
+  const generatePdf = async (report: { causes: string; values: string; advice: string }) => {
     const pdfDoc = await PDFDocument.create()
     pdfDoc.registerFontkit(fontkit)
-    let page = pdfDoc.addPage([600, 750])
-    const { height } = page.getSize()
+    const page = pdfDoc.addPage([595, 842])
 
     const FONT_CDN = 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc@5/files/noto-sans-tc-chinese-traditional-400-normal.woff2'
     let fontBytes: ArrayBuffer
@@ -125,47 +150,99 @@ export default function Dashboard() {
       toast({ title: '字體載入失敗，無法匯出 PDF', description: String(err), status: 'error', duration: 4000, isClosable: true })
       return
     }
-    const customFont = await pdfDoc.embedFont(fontBytes)
+    const font = await pdfDoc.embedFont(fontBytes)
 
-    let startY = height - 50
+    const W = 595
+    const H = 842
+    const MARGIN = 40
+    const white     = rgb(1, 1, 1)
+    const darkRed   = rgb(0.6, 0.1, 0.1)
+    const lightGray = rgb(0.96, 0.96, 0.96)
+    const sepGray   = rgb(0.85, 0.85, 0.85)
+    const dark      = rgb(0.15, 0.15, 0.15)
+    const mid       = rgb(0.45, 0.45, 0.45)
+    const accent    = rgb(0.6, 0.1, 0.1)
 
-    if (aiReport) {
-      page.drawText('AI 離職故事分析', { x: 50, y: startY, size: 14, font: customFont, color: rgb(0.8, 0.3, 0) })
-      startY -= 25
+    // ── Block 1: Header ──────────────────────────────────────
+    const headerH = 100
+    const headerY = H - headerH
+    page.drawRectangle({ x: 0, y: headerY, width: W, height: headerH, color: darkRed })
+    page.drawText('離職集章證明', {
+      x: MARGIN, y: headerY + 58, size: 26, font, color: white,
+    })
+    page.drawText(user!.displayName || 'Anonymous', {
+      x: MARGIN, y: headerY + 24, size: 11, font, color: rgb(0.9, 0.9, 0.9),
+    })
+    const today = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    page.drawText(today, {
+      x: W - MARGIN - 90, y: headerY + 24, size: 11, font, color: rgb(0.9, 0.9, 0.9),
+    })
+
+    // ── Block 2: Stats card ───────────────────────────────────
+    const statsCardH = 55
+    const statsCardY = headerY - 20 - statsCardH
+    page.drawRectangle({ x: MARGIN, y: statsCardY, width: W - MARGIN * 2, height: statsCardH, color: lightGray })
+    page.drawText(`已蓋 ${stamps.length} 章`, {
+      x: MARGIN + 20, y: statsCardY + 18, size: 18, font, color: dark,
+    })
+    const pct = ((stamps.length / MAX_STAMPS) * 100).toFixed(1)
+    page.drawText(`完成度 ${pct}%`, {
+      x: W / 2 + 20, y: statsCardY + 18, size: 18, font, color: dark,
+    })
+
+    // ── Block 3: Three columns ────────────────────────────────
+    const colAreaTop = statsCardY - 24
+    const colW = Math.floor((W - MARGIN * 2 - 4) / 3)
+    const col1X = MARGIN
+    const col2X = MARGIN + colW + 2
+    const col3X = MARGIN + colW * 2 + 4
+    const colTitleY = colAreaTop - 14
+
+    page.drawText('離職根因', { x: col1X, y: colTitleY, size: 10, font, color: accent })
+    page.drawText('你真正重視的', { x: col2X, y: colTitleY, size: 10, font, color: accent })
+    page.drawText('求職方向', { x: col3X, y: colTitleY, size: 10, font, color: accent })
+
+    const titleLineY = colTitleY - 10
+    page.drawLine({ start: { x: MARGIN, y: titleLineY }, end: { x: W - MARGIN, y: titleLineY }, thickness: 0.5, color: sepGray })
+
+    const colBottom = 60
+    page.drawLine({ start: { x: col2X - 1, y: colAreaTop }, end: { x: col2X - 1, y: colBottom }, thickness: 0.5, color: sepGray })
+    page.drawLine({ start: { x: col3X - 1, y: colAreaTop }, end: { x: col3X - 1, y: colBottom }, thickness: 0.5, color: sepGray })
+
+    const CHARS_PER_LINE = 16
+    const LINE_H = 16
+    const COL_PAD = 4
+    const contentStartY = titleLineY - 16
+
+    const drawColText = (text: string, x: number) => {
+      let y = contentStartY
       let line = ''
-      const maxWidth = 70
-      for (const char of aiReport) {
+      for (const char of text) {
         line += char
-        if (line.length >= maxWidth) {
-          page.drawText(line, { x: 50, y: startY, size: 11, font: customFont })
-          startY -= 18
+        if (line.length >= CHARS_PER_LINE) {
+          if (y < colBottom) break
+          page.drawText(line, { x: x + COL_PAD, y, size: 9.5, font, color: dark })
+          y -= LINE_H
           line = ''
         }
       }
-      if (line) {
-        page.drawText(line, { x: 50, y: startY, size: 11, font: customFont })
-        startY -= 30
+      if (line && y >= colBottom) {
+        page.drawText(line, { x: x + COL_PAD, y, size: 9.5, font, color: dark })
       }
     }
 
-    page.drawText('離職集章證明報告', { x: 50, y: startY, size: 24, font: customFont, color: rgb(0, 0.53, 0.24) })
-    page.drawText(`姓名：${user!.displayName || 'Anonymous'}`, { x: 50, y: startY - 30, size: 14, font: customFont })
-    page.drawText(`已收集章數：${stamps.length} / ${MAX_STAMPS}`, { x: 50, y: startY - 60, size: 14, font: customFont })
-    page.drawText('章節內容：', { x: 50, y: startY - 90, size: 14, font: customFont })
+    drawColText(report.causes, col1X)
+    drawColText(report.values, col2X)
+    drawColText(report.advice, col3X)
 
-    let y = startY - 120
-    stamps.forEach((stamp, idx) => {
-      page.drawText(
-        `${idx + 1}. 編號 ${stamp.index}：${stamp.reason}`,
-        { x: 60, y, size: 12, font: customFont, color: rgb(0, 0, 0) }
-      )
-      y -= 20
-    })
+    // ── Footer ────────────────────────────────────────────────
+    page.drawLine({ start: { x: MARGIN, y: 48 }, end: { x: W - MARGIN, y: 48 }, thickness: 0.5, color: sepGray })
+    page.drawText('由 Cloudflare Workers AI 生成', { x: MARGIN, y: 32, size: 8, font, color: mid })
 
     const blob = new Blob([await pdfDoc.save()], { type: 'application/pdf' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    link.download = 'resignation_stamp_report.pdf'
+    link.download = 'resignation_certificate.pdf'
     link.click()
   }
 
@@ -213,7 +290,8 @@ export default function Dashboard() {
           progress={progress}
           stamps={stamps.length}
           maxStamps={MAX_STAMPS}
-          onExport={generatePdf}
+          onExport={handleExport}
+          isExporting={generatingPdf}
         />
 
         {/* ── AI 分析 ─────────────────────────────────────────── */}
