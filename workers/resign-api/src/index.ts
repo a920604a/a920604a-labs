@@ -2,6 +2,7 @@ import { verifyFirebaseToken } from './auth'
 import { handleDailyQuote } from './handlers/dailyQuote'
 import { handlePolish } from './handlers/polish'
 import { handleAnalyze } from './handlers/analyze'
+import { handlePdfReport } from './handlers/pdfReport'
 
 export interface Env {
   AI: Ai
@@ -49,6 +50,7 @@ export default {
       if (req.method === 'POST' && path === '/ai/daily-quote') return handleDailyQuote(req, env, cors)
       if (req.method === 'POST' && path === '/ai/polish')      return handlePolish(req, env, cors)
       if (req.method === 'POST' && path === '/ai/analyze')     return handleAnalyze(req, env, cors)
+      if (req.method === 'POST' && path === '/ai/pdf-report')  return handlePdfReport(req, env, cors)
 
       return new Response('Not Found', { status: 404, headers: cors })
     } catch (err) {
