@@ -19,6 +19,7 @@ interface ProgressSectionProps {
   stamps: number
   maxStamps: number
   onExport: () => void
+  isExporting?: boolean
 }
 
 const MILESTONES = [25, 50, 75, 100]
@@ -28,6 +29,7 @@ export default function ProgressSection({
   stamps,
   maxStamps,
   onExport,
+  isExporting = false,
 }: ProgressSectionProps) {
   const cardBg     = useColorModeValue('white',    'gray.800')
   const border     = useColorModeValue('gray.100', 'gray.700')
@@ -132,6 +134,8 @@ export default function ProgressSection({
           colorScheme="red"
           variant="solid"
           onClick={onExport}
+          isLoading={isExporting}
+          loadingText="生成中…"
           size="md"
           borderRadius="lg"
           shadow="sm"
