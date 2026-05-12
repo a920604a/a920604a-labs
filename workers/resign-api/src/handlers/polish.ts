@@ -7,7 +7,7 @@ export async function handlePolish(
 ): Promise<Response> {
   const { reason } = await req.json() as { reason: string }
 
-  const result = await env.AI.run('@cf/qwen/qwen1.5-14b-chat-awq', {
+  const result = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
     messages: [
       {
         role: 'system',

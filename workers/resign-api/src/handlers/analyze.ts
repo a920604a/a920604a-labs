@@ -17,7 +17,7 @@ export async function handleAnalyze(
     .map((s, i) => `${i + 1}. ${s.reason}`)
     .join('\n')
 
-  const result = await env.AI.run('@cf/qwen/qwen1.5-14b-chat-awq', {
+  const result = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
     messages: [
       {
         role: 'system',

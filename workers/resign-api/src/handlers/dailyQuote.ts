@@ -7,7 +7,7 @@ export async function handleDailyQuote(
 ): Promise<Response> {
   const { date } = await req.json() as { date: string }
 
-  const result = await env.AI.run('@cf/qwen/qwen1.5-14b-chat-awq', {
+  const result = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
     messages: [
       {
         role: 'system',
