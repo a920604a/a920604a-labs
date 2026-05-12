@@ -43,16 +43,19 @@ export async function handlePdfReport(
   let parsed: PdfReportResult = { ...DEFAULT }
   try {
     const raw = result.response?.trim() ?? ''
-    console.log('[pdfReport] AI raw response:', raw.slice(0, 300))
-    const jsonStr = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim()
-    const obj = JSON.parse(jsonStr) as Partial<PdfReportResult>
+    console.log('[pdfReport] AI raw response:', raw.slice(0, 400))
+    // Extract JSON object from response (handles extra text, markdown fences, etc.)
+    const jsonMatch = raw.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error('no JSON object found')
+    const obj = JSON.parse(jsonMatch[0]) as Partial<PdfReportResult>
+    console.log('[pdfReport] parsed obj keys:', Object.keys(obj))
     parsed = {
-      causes: obj.causes || DEFAULT.causes,
-      values: obj.values || DEFAULT.values,
-      advice: obj.advice || DEFAULT.advice,
+      causes: (typeof obj.causes === 'string' && obj.causes) ? obj.causes : DEFAULT.causes,
+      values: (typeof obj.values === 'string' && obj.values) ? obj.values : DEFAULT.values,
+      advice: (typeof obj.advice === 'string' && obj.advice) ? obj.advice : DEFAULT.advice,
     }
   } catch (e) {
-    console.log('[pdfReport] JSON parse failed:', e)
+    console.log('[pdfReport] parse failed:', String(e))
   }
 
   return new Response(JSON.stringify(parsed), {
