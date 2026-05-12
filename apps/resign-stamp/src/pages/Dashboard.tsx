@@ -209,10 +209,10 @@ export default function Dashboard() {
     page.drawLine({ start: { x: col2X - 1, y: colAreaTop }, end: { x: col2X - 1, y: colBottom }, thickness: 0.5, color: sepGray })
     page.drawLine({ start: { x: col3X - 1, y: colAreaTop }, end: { x: col3X - 1, y: colBottom }, thickness: 0.5, color: sepGray })
 
-    const CHARS_PER_LINE = 16
-    const LINE_H = 16
-    const COL_PAD = 4
-    const contentStartY = titleLineY - 16
+    const CHARS_PER_LINE = 12
+    const LINE_H = 18
+    const COL_PAD = 6
+    const contentStartY = titleLineY - 18
 
     const drawColText = (text: string, x: number) => {
       let y = contentStartY
