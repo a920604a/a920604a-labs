@@ -164,47 +164,54 @@ export default function Dashboard() {
     const mid       = rgb(0.45, 0.45, 0.45)
 
     // ── Block 1: Header ──────────────────────────────────────
-    const headerH = 100
+    const headerH = 110
     const headerY = H - headerH
     page.drawRectangle({ x: 0, y: headerY, width: W, height: headerH, color: darkRed })
+    // Title: split into two drawText to avoid font-subset issues with combined strings
+    page.drawText('Resignation Certificate', {
+      x: MARGIN, y: headerY + 72, size: 10, font, color: rgb(1, 0.8, 0.8),
+    })
     page.drawText('離職集章證明', {
-      x: MARGIN, y: headerY + 58, size: 26, font, color: white,
+      x: MARGIN, y: headerY + 50, size: 22, font, color: white,
     })
     page.drawText(user!.displayName || 'Anonymous', {
-      x: MARGIN, y: headerY + 24, size: 11, font, color: rgb(0.9, 0.9, 0.9),
+      x: MARGIN, y: headerY + 20, size: 12, font, color: rgb(0.95, 0.85, 0.85),
     })
     const today = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
     page.drawText(today, {
-      x: W - MARGIN - 90, y: headerY + 24, size: 11, font, color: rgb(0.9, 0.9, 0.9),
+      x: W - MARGIN - 90, y: headerY + 20, size: 12, font, color: rgb(0.95, 0.85, 0.85),
     })
 
     // ── Block 2: Stats card ───────────────────────────────────
-    const statsCardH = 55
-    const statsCardY = headerY - 20 - statsCardH
+    const statsCardH = 60
+    const statsCardY = headerY - 16 - statsCardH
     page.drawRectangle({ x: MARGIN, y: statsCardY, width: W - MARGIN * 2, height: statsCardH, color: lightGray })
-    page.drawText(`已蓋 ${stamps.length} 章`, {
-      x: MARGIN + 20, y: statsCardY + 18, size: 18, font, color: dark,
+    page.drawText(String(stamps.length), {
+      x: MARGIN + 20, y: statsCardY + 30, size: 28, font, color: darkRed,
     })
+    page.drawText('章', { x: MARGIN + 65, y: statsCardY + 30, size: 14, font, color: dark })
+    page.drawText('已集章數', { x: MARGIN + 20, y: statsCardY + 10, size: 9, font, color: mid })
     const pct = ((stamps.length / MAX_STAMPS) * 100).toFixed(1)
-    page.drawText(`完成度 ${pct}%`, {
-      x: W / 2 + 20, y: statsCardY + 18, size: 18, font, color: dark,
+    page.drawText(`${pct}%`, {
+      x: W / 2 + 20, y: statsCardY + 30, size: 28, font, color: darkRed,
     })
+    page.drawText('完成度', { x: W / 2 + 20, y: statsCardY + 10, size: 9, font, color: mid })
 
     // ── Block 3: Vertical sections ───────────────────────────
     const CHARS_PER_LINE = 28
-    const LINE_H = 17
-    const TEXT_SIZE = 9.5
-    const LABEL_H = 22
-    const SECTION_GAP = 10
-    const TEXT_PAD = 8
+    const LINE_H = 18
+    const TEXT_SIZE = 10
+    const LABEL_H = 26
+    const SECTION_GAP = 14
+    const TEXT_PAD = 10
 
     const drawSection = (label: string, text: unknown, topY: number): number => {
       const safeText = typeof text === 'string' && text ? text : ''
-      // Label bar
-      page.drawRectangle({ x: MARGIN, y: topY - LABEL_H, width: W - MARGIN * 2, height: LABEL_H, color: rgb(0.95, 0.91, 0.91) })
-      page.drawText(label, { x: MARGIN + TEXT_PAD, y: topY - LABEL_H + 6, size: 10, font, color: darkRed })
+      // Label bar — strong red with white text for clear contrast
+      page.drawRectangle({ x: MARGIN, y: topY - LABEL_H, width: W - MARGIN * 2, height: LABEL_H, color: rgb(0.72, 0.14, 0.14) })
+      page.drawText(label, { x: MARGIN + TEXT_PAD, y: topY - LABEL_H + 8, size: 11, font, color: white })
       // Text
-      let y = topY - LABEL_H - 14
+      let y = topY - LABEL_H - 16
       let line = ''
       for (const char of safeText) {
         line += char
