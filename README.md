@@ -279,6 +279,7 @@ pnpm wrangler d1 execute ebook-db \
 |---|---|
 | Pages | `a920604a-labs` |
 | Worker | `ebook-api` |
+| Worker | `resign-api` |
 | D1 | `ebook-db` |
 | R2 | `ebook-pdfs` |
 
@@ -287,11 +288,11 @@ pnpm wrangler d1 execute ebook-db \
 | 模組 | Pages | Workers | D1 | R2 |
 |---|:---:|:---:|:---:|:---:|
 | 電子書閱讀器 | ✓ | ✓ | ✓ | ✓ |
-| 離職簽章 | ✓ | - | - | - |
+| 離職簽章 | ✓ | ✓ | - | - |
 | 待辦清單 | ✓ | - | - | - |
 | 習慣追蹤 | ✓ | - | - | - |
 
-> 電子書為唯一有後端的模組；其餘三個模組資料存於 Firebase Firestore，Cloudflare 僅負責靜態托管。
+> 電子書使用 Workers + D1 + R2；離職簽章使用 Workers + Workers AI；其餘兩個模組資料存於 Firebase Firestore，Cloudflare 僅負責靜態托管。
 
 ---
 
