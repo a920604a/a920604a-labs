@@ -162,7 +162,6 @@ export default function Dashboard() {
     const sepGray   = rgb(0.85, 0.85, 0.85)
     const dark      = rgb(0.15, 0.15, 0.15)
     const mid       = rgb(0.45, 0.45, 0.45)
-    const accent    = rgb(0.6, 0.1, 0.1)
 
     // ── Block 1: Header ──────────────────────────────────────
     const headerH = 100
@@ -191,51 +190,41 @@ export default function Dashboard() {
       x: W / 2 + 20, y: statsCardY + 18, size: 18, font, color: dark,
     })
 
-    // ── Block 3: Three columns ────────────────────────────────
-    const colAreaTop = statsCardY - 24
-    const colW = Math.floor((W - MARGIN * 2 - 4) / 3)
-    const col1X = MARGIN
-    const col2X = MARGIN + colW + 2
-    const col3X = MARGIN + colW * 2 + 4
-    const colTitleY = colAreaTop - 14
+    // ── Block 3: Vertical sections ───────────────────────────
+    const CHARS_PER_LINE = 28
+    const LINE_H = 17
+    const TEXT_SIZE = 9.5
+    const LABEL_H = 22
+    const SECTION_GAP = 10
+    const TEXT_PAD = 8
 
-    page.drawText('離職根因', { x: col1X, y: colTitleY, size: 10, font, color: accent })
-    page.drawText('你真正重視的', { x: col2X, y: colTitleY, size: 10, font, color: accent })
-    page.drawText('求職方向', { x: col3X, y: colTitleY, size: 10, font, color: accent })
-
-    const titleLineY = colTitleY - 10
-    page.drawLine({ start: { x: MARGIN, y: titleLineY }, end: { x: W - MARGIN, y: titleLineY }, thickness: 0.5, color: sepGray })
-
-    const colBottom = 60
-    page.drawLine({ start: { x: col2X - 1, y: colAreaTop }, end: { x: col2X - 1, y: colBottom }, thickness: 0.5, color: sepGray })
-    page.drawLine({ start: { x: col3X - 1, y: colAreaTop }, end: { x: col3X - 1, y: colBottom }, thickness: 0.5, color: sepGray })
-
-    const CHARS_PER_LINE = 12
-    const LINE_H = 18
-    const COL_PAD = 6
-    const contentStartY = titleLineY - 18
-
-    const drawColText = (text: unknown, x: number) => {
-      const safeText = typeof text === 'string' && text ? text : '分析資料不足'
-      let y = contentStartY
+    const drawSection = (label: string, text: unknown, topY: number): number => {
+      const safeText = typeof text === 'string' && text ? text : ''
+      // Label bar
+      page.drawRectangle({ x: MARGIN, y: topY - LABEL_H, width: W - MARGIN * 2, height: LABEL_H, color: rgb(0.95, 0.91, 0.91) })
+      page.drawText(label, { x: MARGIN + TEXT_PAD, y: topY - LABEL_H + 6, size: 10, font, color: darkRed })
+      // Text
+      let y = topY - LABEL_H - 14
       let line = ''
       for (const char of safeText) {
         line += char
         if (line.length >= CHARS_PER_LINE) {
-          if (y < colBottom) break
-          page.drawText(line, { x: x + COL_PAD, y, size: 9.5, font, color: dark })
+          page.drawText(line, { x: MARGIN + TEXT_PAD, y, size: TEXT_SIZE, font, color: dark })
           y -= LINE_H
           line = ''
         }
       }
-      if (line && y >= colBottom) {
-        page.drawText(line, { x: x + COL_PAD, y, size: 9.5, font, color: dark })
+      if (line) {
+        page.drawText(line, { x: MARGIN + TEXT_PAD, y, size: TEXT_SIZE, font, color: dark })
+        y -= LINE_H
       }
+      return y - SECTION_GAP
     }
 
-    drawColText(report.causes, col1X)
-    drawColText(report.values, col2X)
-    drawColText(report.advice, col3X)
+    let sectionY = statsCardY - 18
+    sectionY = drawSection('離職根因', report.causes, sectionY)
+    sectionY = drawSection('你真正重視的', report.values, sectionY)
+    drawSection('求職方向', report.advice, sectionY)
 
     // ── Footer ────────────────────────────────────────────────
     page.drawLine({ start: { x: MARGIN, y: 48 }, end: { x: W - MARGIN, y: 48 }, thickness: 0.5, color: sepGray })
