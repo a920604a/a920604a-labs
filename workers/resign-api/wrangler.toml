@@ -1,0 +1,11 @@
+name = "resign-api"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+[ai]
+binding = "AI"
+
+[vars]
+FIREBASE_PROJECT_ID = "a920604a-labs"
+ALLOWED_ORIGINS = "http://localhost:5173,https://a920604a-labs.pages.dev"
