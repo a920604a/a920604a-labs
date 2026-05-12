@@ -18,7 +18,7 @@ import {
 import { getAuth } from 'firebase/auth'
 
 const MAX_CHARS = 200
-const RESIGN_API_URL = import.meta.env.VITE_RESIGN_API_URL ?? 'http://localhost:8788'
+const RESIGN_API_URL = import.meta.env.VITE_RESIGN_API_URL || 'http://localhost:8788'
 
 interface ReasonModalProps {
   isOpen: boolean

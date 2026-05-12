@@ -27,7 +27,7 @@ import ProgressSection from '../components/ProgressSection'
 import StampGrid from '../components/StampGrid'
 import type { Stamp } from '../components/StampGrid'
 
-const RESIGN_API_URL = import.meta.env.VITE_RESIGN_API_URL ?? 'http://localhost:8788'
+const RESIGN_API_URL = import.meta.env.VITE_RESIGN_API_URL || 'http://localhost:8788'
 
 const MAX_STAMPS = 100
 

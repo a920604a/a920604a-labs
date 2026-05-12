@@ -15,7 +15,7 @@ const FALLBACK_QUOTES = [
   '放下過去，擁抱未知。',
 ]
 
-const RESIGN_API_URL = import.meta.env.VITE_RESIGN_API_URL ?? 'http://localhost:8788'
+const RESIGN_API_URL = import.meta.env.VITE_RESIGN_API_URL || 'http://localhost:8788'
 
 function getFallbackQuote(): string {
   const today = new Date()
@@ -42,7 +42,8 @@ export default function DailyQuote() {
         if (!res.ok) throw new Error(`status ${res.status}`)
         const data = await res.json() as { quote: string }
         setQuote(data.quote || getFallbackQuote())
-      } catch {
+      } catch (err) {
+        console.log('[DailyQuote] fetch failed:', err)
         setQuote(getFallbackQuote())
       } finally {
         setLoading(false)
