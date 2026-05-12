@@ -35,7 +35,7 @@ export async function handlePdfReport(
       },
       {
         role: 'user',
-        content: `以下是 ${userName} 記錄的 ${stamps.length} 筆離職理由：\n${reasons}\n\n請以 JSON 格式輸出分析，每欄 100 字以內，繁體中文：\n{"causes":"歸納2-3個核心離職原因類別","values":"從痛點反推出此人真正重視的工作條件","advice":"具體求職建議：應找什麼、應避開什麼、面試時應問什麼"}`,
+        content: `以下是 ${userName} 記錄的 ${stamps.length} 筆離職理由：\n${reasons}\n\n請用繁體中文分析，每段 80 字以內，嚴格照以下格式輸出，不要加其他文字：\nCAUSES: 歸納2-3個核心離職原因類別\nVALUES: 從痛點反推出此人真正重視的工作條件\nADVICE: 具體求職建議：應找什麼、應避開什麼`,
       },
     ],
   }) as { response: string }
@@ -43,16 +43,13 @@ export async function handlePdfReport(
   let parsed: PdfReportResult = { ...DEFAULT }
   try {
     const raw = result.response?.trim() ?? ''
-    console.log('[pdfReport] AI raw response:', raw.slice(0, 400))
-    // Extract JSON object from response (handles extra text, markdown fences, etc.)
-    const jsonMatch = raw.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('no JSON object found')
-    const obj = JSON.parse(jsonMatch[0]) as Partial<PdfReportResult>
-    console.log('[pdfReport] parsed obj keys:', Object.keys(obj))
+    const causesMatch = raw.match(/CAUSES:\s*([\s\S]*?)(?=VALUES:|$)/)
+    const valuesMatch = raw.match(/VALUES:\s*([\s\S]*?)(?=ADVICE:|$)/)
+    const adviceMatch = raw.match(/ADVICE:\s*([\s\S]*)$/)
     parsed = {
-      causes: (typeof obj.causes === 'string' && obj.causes) ? obj.causes : DEFAULT.causes,
-      values: (typeof obj.values === 'string' && obj.values) ? obj.values : DEFAULT.values,
-      advice: (typeof obj.advice === 'string' && obj.advice) ? obj.advice : DEFAULT.advice,
+      causes: causesMatch?.[1]?.trim() || DEFAULT.causes,
+      values: valuesMatch?.[1]?.trim() || DEFAULT.values,
+      advice: adviceMatch?.[1]?.trim() || DEFAULT.advice,
     }
   } catch (e) {
     console.log('[pdfReport] parse failed:', String(e))
