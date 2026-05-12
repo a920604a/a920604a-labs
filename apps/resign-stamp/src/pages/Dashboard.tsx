@@ -239,7 +239,7 @@ export default function Dashboard() {
 
     // ── Footer ────────────────────────────────────────────────
     page.drawLine({ start: { x: MARGIN, y: 48 }, end: { x: W - MARGIN, y: 48 }, thickness: 0.5, color: sepGray })
-    page.drawText('由 Cloudflare Workers AI 生成', { x: MARGIN, y: 32, size: 8, font, color: mid })
+    page.drawText('由 CF Workers AI 生成', { x: MARGIN, y: 32, size: 8, font, color: mid })
 
     const blob = new Blob([(await pdfDoc.save()).buffer as ArrayBuffer], { type: 'application/pdf' })
     const link = document.createElement('a')

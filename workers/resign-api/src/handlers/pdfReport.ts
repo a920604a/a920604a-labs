@@ -18,7 +18,17 @@ const DEFAULT: PdfReportResult = {
   advice: '分析資料不足',
 }
 
-const SYSTEM = '你是職涯顧問。用繁體中文，80字以內，只輸出分析內容，不要標題、不要前言、不要編號。'
+const SYSTEM = '你是職涯顧問。用繁體中文回答，嚴格限制在60字以內，純文字，不能使用任何markdown符號（不能用**、*、#、-），不要編號，不要標題，直接寫分析內容。'
+
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '$1')   // **bold**
+    .replace(/\*(.+?)\*/g, '$1')        // *italic*
+    .replace(/^[*\-#>\d.]+\s*/gm, '')   // list markers, headings
+    .replace(/`(.+?)`/g, '$1')          // inline code
+    .trim()
+    .slice(0, 120)                       // hard cap
+}
 
 async function ask(env: Env, prompt: string): Promise<string> {
   const r = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
@@ -27,7 +37,7 @@ async function ask(env: Env, prompt: string): Promise<string> {
       { role: 'user', content: prompt },
     ],
   }) as { response: string }
-  return r.response?.trim() ?? ''
+  return stripMarkdown(r.response?.trim() ?? '')
 }
 
 export async function handlePdfReport(
